@@ -1,8 +1,8 @@
 {
   "app.admin": "Admin",
   "app.customers": "Customers",
-  "app.customer_invoices": "Customer Invoices",
-  "app.customer-invoice": "Customer Invoice",
+  "app.outbound-shipment": "Outbound shipments",
+  "app.outbounds": "Outbounds",
   "app.customer-requisition": "Requisitions",
   "app.dashboard": "Dashboard",
   "app.logout": "Logout",

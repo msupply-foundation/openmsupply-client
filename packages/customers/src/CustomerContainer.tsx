@@ -17,8 +17,8 @@ const RequisitionService: React.FC = () => (
   <Typography style={{ margin: 25 }}>coming soon..</Typography>
 );
 
-const fullCustomerInvoicePath = RouteBuilder.create(AppRoute.Customers)
-  .addPart(AppRoute.CustomerInvoice)
+const fullOutboundShipmentPath = RouteBuilder.create(AppRoute.Customers)
+  .addPart(AppRoute.OutboundShipment)
   .addWildCard()
   .build();
 
@@ -28,7 +28,7 @@ const fullCustomerRequisitionPath = RouteBuilder.create(AppRoute.Customers)
   .build();
 
 const CustomerContainer: FC = () => {
-  if (useMatch(fullCustomerInvoicePath)) {
+  if (useMatch(fullOutboundShipmentPath)) {
     return <TransactionService />;
   }
   if (useMatch(fullCustomerRequisitionPath)) {
@@ -41,9 +41,9 @@ const CustomerContainer: FC = () => {
         <Grid flex={1} item sx={{ margin: 1 }}>
           <NavigationButton
             to={RouteBuilder.create(AppRoute.Customers)
-              .addPart(AppRoute.CustomerInvoice)
+              .addPart(AppRoute.OutboundShipment)
               .build()}
-            labelKey="app.customer-invoice"
+            labelKey="app.outbounds"
             icon={<Invoice />}
           />
         </Grid>

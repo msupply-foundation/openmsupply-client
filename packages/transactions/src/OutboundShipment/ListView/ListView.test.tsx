@@ -10,7 +10,7 @@ describe('OutboundShipmentListView', () => {
   it('Renders all the headers for the list', async () => {
     const { getByText } = render(
       <TestingProvider>
-        <TestingRouter initialEntries={['/customers/customer-invoice']}>
+        <TestingRouter initialEntries={['/customers/outbound-shipment']}>
           <Route path="*" element={<OutboundShipmentListView />} />
         </TestingRouter>
       </TestingProvider>

@@ -5,18 +5,18 @@ describe('Formatters', () => {
   it('builds a route with an appended wildcard', () => {
     expect(
       RouteBuilder.create(AppRoute.Customers)
-        .addPart(AppRoute.CustomerInvoice)
+        .addPart(AppRoute.OutboundShipment)
         .addWildCard()
         .build()
-    ).toBe('/customers/customer-invoice/*');
+    ).toBe('/customers/outbound-shipment/*');
   });
 
   it('builds a route', () => {
     expect(
       RouteBuilder.create(AppRoute.Customers)
-        .addPart(AppRoute.CustomerInvoice)
+        .addPart(AppRoute.OutboundShipment)
         .build()
-    ).toBe('/customers/customer-invoice');
+    ).toBe('/customers/outbound-shipment');
   });
 
   it('can be used to create multiple routes from the same builder', () => {

@@ -41,9 +41,9 @@ const Nav: FC = () => {
           <AppNavLink
             end={true}
             to={RouteBuilder.create(AppRoute.Customers)
-              .addPart(AppRoute.CustomerInvoice)
+              .addPart(AppRoute.OutboundShipment)
               .build()}
-            text={t('app.customer-invoice')}
+            text={t('app.outbounds')}
           />
           <AppNavLink
             end={true}

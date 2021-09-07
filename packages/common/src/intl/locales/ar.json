@@ -1,7 +1,7 @@
 {
     "app.admin": "مشرف",
-    "app.customer_invoices": "فواتير العميل",
-    "app.customer-invoice": "فاتورة العميل",
+    "app.outbound-shipment": "فواتير العميل",
+    "app.outbounds": "Outbound shipments",
     "app.customer-requisition": "طلبات الشراء",
     "app.customers": "عملاء",
     "app.dashboard": "لوحة القيادة",

@@ -10,8 +10,8 @@ describe('OutboundShipmentDetailView', () => {
   it('Renders the correct outbound shipment for the provided url ', async () => {
     const { getByText } = render(
       <TestingProvider>
-        <TestingRouter initialEntries={['/customers/customer-invoice/3']}>
-          <Route path="customers/customer-invoice">
+        <TestingRouter initialEntries={['/customers/outbound-shipment/3']}>
+          <Route path="customers/outbound-shipment">
             <Route path={':id'} element={<OutboundShipmentDetailView />} />
           </Route>
         </TestingRouter>

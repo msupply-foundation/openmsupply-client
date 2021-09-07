@@ -15,8 +15,8 @@ import { ListItemProps } from 'material-ui';
 
 const useSelectedNavMenuItem = (to: string, end: boolean): boolean => {
   // This nav menu item should be selected when lower level elements
-  // are selected. For example, the route /customer-invoices/{id} should
-  // highlight the nav menu item for customer-invoices.
+  // are selected. For example, the route /outbound-shipment/{id} should
+  // highlight the nav menu item for outbound shipment.
   const highlightLowerLevels = !end || to.endsWith('*');
   // If we need to highlight the higher levels append a wildcard to the match path.
   const path = highlightLowerLevels ? to : `${to}/*`;

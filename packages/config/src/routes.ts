@@ -1,6 +1,6 @@
 export enum AppRoute {
   Customers = 'customers',
-  CustomerInvoice = 'customer-invoice',
+  OutboundShipment = 'outbound-shipment',
   CustomerRequisition = 'customer-requisition',
 
   Dashboard = 'dashboard',

@@ -69,7 +69,7 @@ export const OutboundShipmentListView: FC = () => {
           <Button
             icon={<PlusCircle />}
             labelKey="button.new-shipment"
-            onClick={() => navigate(`/customers/customer-invoice/new`)}
+            onClick={() => navigate(`/customers/outbound-shipment/new`)}
           />
           <Button
             icon={<Download />}
@@ -95,7 +95,7 @@ export const OutboundShipmentListView: FC = () => {
         isLoading={isLoading}
         onFetchData={setQueryProps}
         onRowClick={row => {
-          navigate(`/customers/customer-invoice/${row.id}`);
+          navigate(`/customers/outbound-shipment/${row.id}`);
         }}
         totalLength={response?.totalLength || 0}
       />
