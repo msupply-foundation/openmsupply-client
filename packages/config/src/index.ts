@@ -11,5 +11,5 @@ declare global {
 }
 
 export const Environment: EnvironmentConfig = window.env ?? {
-  API_URL: 'http://localhost:400',
+  API_URL: 'http://localhost:4000',
 };
