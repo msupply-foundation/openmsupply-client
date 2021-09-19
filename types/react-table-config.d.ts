@@ -50,12 +50,14 @@ import {
 
 declare module 'react-table' {
   type Align = { align?: 'left' | 'center' | 'right' };
+  type DefaultSortDirection = { defaultSortDirection?: 'asc' | 'desc' };
   export interface ColumnInstance<
     D extends Record<string, unknown> = Record<string, unknown>
   > extends UseFiltersColumnProps<D>,
       UseGroupByColumnProps<D>,
       UseResizeColumnsColumnProps<D>,
       Align,
+      DefaultSortDirection,
       UseSortByColumnProps<D> {}
 
   export interface TableOptions<D extends Record<string, unknown>>
@@ -108,6 +110,7 @@ declare module 'react-table' {
       UseGroupByColumnOptions<D>,
       UseResizeColumnsColumnOptions<D>,
       Align,
+      DefaultSortDirection,
       UseSortByColumnOptions<D> {}
 
   export interface Cell<

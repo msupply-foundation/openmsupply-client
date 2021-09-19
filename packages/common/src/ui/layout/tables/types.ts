@@ -18,6 +18,7 @@ export interface ColumnDefinition<T> {
   width?: number;
   maxWidth?: number;
   minWidth?: number;
+  defaultSortDirection: 'asc' | 'desc';
 }
 
 export enum GenericColumnType {

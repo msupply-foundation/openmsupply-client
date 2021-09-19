@@ -11,18 +11,22 @@ interface TestSortBy {
   quantity: number;
 }
 
+const getColumn = (id: string): any => ({
+  id,
+  defaultSortDirection: 'asc',
+});
+
 const Template: Story = () => {
-  const { sortBy, onChangeSortBy } = useSortBy<TestSortBy>({
-    key: 'id',
-    isDesc: true,
-  });
+  const { sortBy, onChangeSortBy } = useSortBy<TestSortBy>(getColumn('id'));
 
   return (
     <div>
       <div>
         <span> Two buttons to sort by two different keys, ID or Quantity.</span>
-        <button onClick={() => onChangeSortBy('id')}>Sort by ID!</button>
-        <button onClick={() => onChangeSortBy('quantity')}>
+        <button onClick={() => onChangeSortBy(getColumn('id'))}>
+          Sort by ID!
+        </button>
+        <button onClick={() => onChangeSortBy(getColumn('quantity'))}>
           Sort by Quantity!
         </button>
       </div>

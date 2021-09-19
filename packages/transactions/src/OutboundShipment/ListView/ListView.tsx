@@ -135,6 +135,7 @@ export const OutboundShipmentListView: FC = () => {
       minWidth: 150,
       maxWidth: 250,
       align: 'left',
+      defaultSortDirection: 'asc',
     },
     {
       label: 'label.type',
@@ -143,6 +144,7 @@ export const OutboundShipmentListView: FC = () => {
       minWidth: 100,
       maxWidth: 100,
       align: 'left',
+      defaultSortDirection: 'asc',
     },
     {
       label: 'label.status',
@@ -151,6 +153,7 @@ export const OutboundShipmentListView: FC = () => {
       minWidth: 75,
       maxWidth: 75,
       align: 'left',
+      defaultSortDirection: 'asc',
     },
     {
       label: 'label.entered',
@@ -160,6 +163,7 @@ export const OutboundShipmentListView: FC = () => {
       minWidth: 75,
       maxWidth: 75,
       align: 'left',
+      defaultSortDirection: 'desc',
     },
     {
       label: 'label.confirmed',
@@ -169,6 +173,7 @@ export const OutboundShipmentListView: FC = () => {
       minWidth: 75,
       maxWidth: 75,
       align: 'left',
+      defaultSortDirection: 'desc',
     },
 
     {
@@ -178,6 +183,7 @@ export const OutboundShipmentListView: FC = () => {
       minWidth: 25,
       maxWidth: 25,
       align: 'left',
+      defaultSortDirection: 'desc',
     },
     {
       label: 'label.total',
@@ -186,6 +192,7 @@ export const OutboundShipmentListView: FC = () => {
       minWidth: 75,
       maxWidth: 75,
       align: 'right',
+      defaultSortDirection: 'desc',
     },
     {
       label: 'label.comment',
@@ -194,6 +201,7 @@ export const OutboundShipmentListView: FC = () => {
       minWidth: 300,
       maxWidth: 450,
       align: 'left',
+      defaultSortDirection: 'asc',
     },
 
     GenericColumnType.Selection,
