@@ -11,6 +11,7 @@ import {
   useQuery,
   useDialog,
   FormProvider,
+  Divider,
 } from '@openmsupply-client/common';
 import { Environment } from '@openmsupply-client/config';
 import { BatchesTable } from './BatchesTable';
@@ -246,6 +247,7 @@ export const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({
               register={register}
               isLoading={isLoading}
             />
+            <Divider margin={40} />
             <BatchesTable
               item={selectedItem}
               onChange={onChangeRowQuantity}

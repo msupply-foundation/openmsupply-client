@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Checkbox,
-  Divider,
   FieldValues,
   InfoIcon,
   Item,
@@ -121,48 +120,45 @@ export const BatchesTable: React.FC<BatchesTableProps> = ({
     onChange('placeholder', Number(event.target.value));
 
   return (
-    <>
-      <TableContainer>
-        <Divider margin={40} />
-        <Table>
-          <TableHead>
-            <TableRow>
-              <HeaderCell></HeaderCell>
-              <HeaderCell>{t('label.issue')}</HeaderCell>
-              <HeaderCell>{t('label.hold')}</HeaderCell>
-              <HeaderCell>{t('label.available')}</HeaderCell>
-              <HeaderCell>{t('label.in-store')}</HeaderCell>
-              <HeaderCell>{t('label.pack')}</HeaderCell>
-              <HeaderCell>{t('label.batch')}</HeaderCell>
-              <HeaderCell>{t('label.expiry')}</HeaderCell>
-              <HeaderCell>{t('label.cost')}</HeaderCell>
-              <HeaderCell>{t('label.sell')}</HeaderCell>
-              <HeaderCell></HeaderCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map((batch, index) => (
-              <BatchesRow
-                batch={batch}
-                key={batch.id}
-                label={t('label.line', { number: index + 1 })}
-                onChange={onChange}
+    <TableContainer>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <HeaderCell></HeaderCell>
+            <HeaderCell>{t('label.issue')}</HeaderCell>
+            <HeaderCell>{t('label.hold')}</HeaderCell>
+            <HeaderCell>{t('label.available')}</HeaderCell>
+            <HeaderCell>{t('label.in-store')}</HeaderCell>
+            <HeaderCell>{t('label.pack')}</HeaderCell>
+            <HeaderCell>{t('label.batch')}</HeaderCell>
+            <HeaderCell>{t('label.expiry')}</HeaderCell>
+            <HeaderCell>{t('label.cost')}</HeaderCell>
+            <HeaderCell>{t('label.sell')}</HeaderCell>
+            <HeaderCell></HeaderCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {rows.map((batch, index) => (
+            <BatchesRow
+              batch={batch}
+              key={batch.id}
+              label={t('label.line', { number: index + 1 })}
+              onChange={onChange}
+            />
+          ))}
+          <TableRow>
+            <BasicCell align="right" sx={{ paddingTop: '3px' }}>
+              {t('label.placeholder')}
+            </BasicCell>
+            <BasicCell sx={{ paddingTop: '3px' }}>
+              <NumericTextInput
+                {...placeholderInputProps}
+                onChange={onChangeValue}
               />
-            ))}
-            <TableRow>
-              <BasicCell align="right" sx={{ paddingTop: '3px' }}>
-                {t('label.placeholder')}
-              </BasicCell>
-              <BasicCell sx={{ paddingTop: '3px' }}>
-                <NumericTextInput
-                  {...placeholderInputProps}
-                  onChange={onChangeValue}
-                />
-              </BasicCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </>
+            </BasicCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 };

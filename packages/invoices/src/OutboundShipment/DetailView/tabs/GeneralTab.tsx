@@ -6,24 +6,39 @@ import {
   Column,
   DomainObject,
   Box,
+  FormProvider,
+  useForm,
+  ExpandContentProps,
 } from '@openmsupply-client/common';
 import { ItemRow } from '../types';
+import { BatchesTable } from '../modals/BatchesTable';
 
 interface GeneralTabProps<T extends ObjectWithStringKeys & DomainObject> {
   data: T[];
   columns: Column<T>[];
 }
 
-const Expand: FC = () => {
+const Expand = (props: ExpandContentProps<ItemRow>) => {
+  const methods = useForm({ mode: 'onBlur' });
   return (
-    <Box p={1} height={300}>
-      <Box
-        flex={1}
-        display="flex"
-        height="100%"
-        borderRadius={4}
-        bgcolor="#c7c9d933"
-      />
+    <Box p={1}>
+      <Box height="100%" borderRadius={4}>
+        <FormProvider {...methods}>
+          <form>
+            <BatchesTable
+              item={props?.rowData?.item ?? null}
+              onChange={() => {}}
+              rows={
+                props?.rowData?.item?.availableBatches?.nodes?.map(batch => ({
+                  ...batch,
+                  quantity: 0,
+                })) ?? []
+              }
+              register={(() => {}) as unknown as any}
+            />
+          </form>
+        </FormProvider>
+      </Box>
     </Box>
   );
 };

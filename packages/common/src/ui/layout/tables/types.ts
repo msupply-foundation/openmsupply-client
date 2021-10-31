@@ -1,4 +1,4 @@
-import { ReactNode, FC } from 'react';
+import { ReactNode } from 'react';
 import { LocaleKey } from '@openmsupply-client/common/src/intl/intlHelpers';
 import { ObjectWithStringKeys, DomainObject } from './../../../types';
 import { Pagination } from '../../../hooks/usePagination';
@@ -16,6 +16,10 @@ export interface QueryResponse<T> {
   totalLength: number;
 }
 
+export interface ExpandContentProps<T> {
+  rowData: T;
+}
+
 export interface TableProps<T extends DomainObject> {
   columns: Column<T>[];
   data?: T[];
@@ -25,5 +29,5 @@ export interface TableProps<T extends DomainObject> {
   onRowClick?: (row: T) => void;
   children?: ReactNode;
   noDataMessageKey?: LocaleKey;
-  ExpandContent?: FC;
+  ExpandContent?: (props: ExpandContentProps<T>) => JSX.Element;
 }

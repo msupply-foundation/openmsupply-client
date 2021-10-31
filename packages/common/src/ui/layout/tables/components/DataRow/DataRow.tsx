@@ -1,7 +1,8 @@
-import React, { FC } from 'react';
+import React from 'react';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import { Column } from '../../columns/types';
+import { ExpandContentProps } from '../../types';
 import { DomainObject } from '../../../../../types';
 import { useExpanded } from '../..';
 import { Collapse } from '@mui/material';
@@ -11,7 +12,7 @@ interface DataRowProps<T extends DomainObject> {
   onClick?: (rowValues: T) => void;
   rowData: T;
   rowKey: string;
-  ExpandContent?: FC;
+  ExpandContent?: (props: ExpandContentProps<T>) => JSX.Element;
 }
 
 export const DataRow = <T extends DomainObject>({
@@ -71,7 +72,7 @@ export const DataRow = <T extends DomainObject>({
         })}
       </TableRow>
       <Collapse in={isExpanded}>
-        {ExpandContent ? <ExpandContent /> : null}
+        {ExpandContent ? <ExpandContent rowData={rowData} /> : null}
       </Collapse>
     </>
   );
