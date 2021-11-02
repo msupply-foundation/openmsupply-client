@@ -347,6 +347,10 @@ export default gql`
 
     # A FINALISED invoice can't be edited nor deleted.
     FINALISED
+
+    ALLOCATED
+    SHIPPED
+    DELIVERED
   }
 
   enum InvoiceNodeType {
