@@ -14,8 +14,8 @@ export type ColumnKey =
   | 'invoiceNumber'
   | 'type'
   | 'status'
-  | 'entryDatetime'
-  | 'confirmedDatetime'
+  | 'draftDatetime'
+  | 'allocatedDatetime'
   | 'totalAfterTax'
   | 'comment'
   | 'selection'
@@ -87,15 +87,15 @@ const getColumnLookup = <T extends DomainObject>(): Record<
     key: 'status',
     width: 75,
   },
-  entryDatetime: {
+  draftDatetime: {
     label: 'label.entered',
-    key: 'entryDatetime',
+    key: 'draftDatetime',
     format: ColumnFormat.Date,
     width: 100,
   },
-  confirmedDatetime: {
+  allocatedDatetime: {
     label: 'label.confirmed',
-    key: 'confirmedDatetime',
+    key: 'allocatedDatetime',
     format: ColumnFormat.Date,
     width: 100,
   },

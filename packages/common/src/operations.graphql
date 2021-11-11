@@ -20,9 +20,6 @@ query invoice($id: String!) {
       __typename
       id
       comment
-      confirmedDatetime
-      entryDatetime
-      finalisedDatetime
       invoiceNumber
       draftDatetime
       allocatedDatetime
@@ -170,8 +167,8 @@ query invoices(
       nodes {
         comment
 
-        confirmedDatetime
-        entryDatetime
+        allocatedDatetime
+        draftDatetime
 
         id
         invoiceNumber

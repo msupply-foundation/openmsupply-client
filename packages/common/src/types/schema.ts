@@ -445,10 +445,10 @@ export type InvoiceDoesNotBelongToCurrentStore =
     };
 
 export type InvoiceFilterInput = {
+  allocatedDatetime?: Maybe<DatetimeFilterInput>;
   comment?: Maybe<SimpleStringFilterInput>;
-  confirmDatetime?: Maybe<DatetimeFilterInput>;
-  entryDatetime?: Maybe<DatetimeFilterInput>;
-  finalisedDatetime?: Maybe<DatetimeFilterInput>;
+  deliveredDatetime?: Maybe<DatetimeFilterInput>;
+  draftDatetime?: Maybe<DatetimeFilterInput>;
   nameId?: Maybe<SimpleStringFilterInput>;
   otherPartyName?: Maybe<SimpleStringFilterInput>;
   status?: Maybe<SimpleStringFilterInput>;
@@ -508,13 +508,10 @@ export type InvoiceNode = {
   allocatedDatetime?: Maybe<Scalars['DateTime']>;
   color: Scalars['String'];
   comment?: Maybe<Scalars['String']>;
-  confirmedDatetime?: Maybe<Scalars['DateTime']>;
   deliveredDatetime?: Maybe<Scalars['DateTime']>;
   donorName: Scalars['String'];
-  draftDatetime?: Maybe<Scalars['DateTime']>;
   enteredByName: Scalars['String'];
-  entryDatetime: Scalars['DateTime'];
-  finalisedDatetime?: Maybe<Scalars['DateTime']>;
+  draftDatetime: Scalars['DateTime'];
   goodsReceiptNumber?: Maybe<Scalars['Int']>;
   id: Scalars['String'];
   inboundShipmentNumber?: Maybe<Scalars['Int']>;
@@ -563,15 +560,15 @@ export type InvoicePricingNode = {
 export type InvoiceResponse = InvoiceNode | NodeError;
 
 export enum InvoiceSortFieldInput {
-  Comment = 'COMMENT',
-  ConfirmDatetime = 'CONFIRM_DATETIME',
-  EntryDatetime = 'ENTRY_DATETIME',
-  FinalisedDateTime = 'FINALISED_DATE_TIME',
-  InvoiceNumber = 'INVOICE_NUMBER',
-  OtherPartyName = 'OTHER_PARTY_NAME',
-  Status = 'STATUS',
-  TotalAfterTax = 'TOTAL_AFTER_TAX',
-  Type = 'TYPE',
+  AllocatedDatetime = 'allocatedDatetime',
+  Comment = 'comment',
+  DeliveredDatetime = 'deliveredDatetime',
+  DraftDatetime = 'draftDatetime',
+  InvoiceNumber = 'invoiceNumber',
+  OtherPartyName = 'otherPartyName',
+  Status = 'status',
+  TotalAfterTax = 'totalAfterTax',
+  Type = 'type',
 }
 
 export type InvoiceSortInput = {
@@ -612,8 +609,8 @@ export type ItemNode = {
 };
 
 export enum ItemSortFieldInput {
-  Code = 'CODE',
-  Name = 'NAME',
+  Code = 'code',
+  Name = 'name',
 }
 
 export type ItemSortInput = {
@@ -746,8 +743,8 @@ export type NameNode = {
 export type NameResponse = NameNode | NodeError;
 
 export enum NameSortFieldInput {
-  Code = 'CODE',
-  Name = 'NAME',
+  Code = 'code',
+  Name = 'name',
 }
 
 export type NameSortInput = {
@@ -1091,11 +1088,8 @@ export type InvoiceQuery = {
         __typename: 'InvoiceNode';
         id: string;
         comment?: string | null | undefined;
-        confirmedDatetime?: any | null | undefined;
-        entryDatetime: any;
-        finalisedDatetime?: any | null | undefined;
         invoiceNumber: number;
-        draftDatetime?: any | null | undefined;
+        draftDatetime: any;
         allocatedDatetime?: any | null | undefined;
         pickedDatetime?: any | null | undefined;
         shippedDatetime?: any | null | undefined;
@@ -1229,8 +1223,8 @@ export type InvoicesQuery = {
         nodes: Array<{
           __typename?: 'InvoiceNode';
           comment?: string | null | undefined;
-          confirmedDatetime?: any | null | undefined;
-          entryDatetime: any;
+          allocatedDatetime?: any | null | undefined;
+          draftDatetime: any;
           id: string;
           invoiceNumber: number;
           otherPartyId: string;
@@ -1624,9 +1618,6 @@ export const InvoiceDocument = gql`
         __typename
         id
         comment
-        confirmedDatetime
-        entryDatetime
-        finalisedDatetime
         invoiceNumber
         draftDatetime
         allocatedDatetime
@@ -1770,8 +1761,8 @@ export const InvoicesDocument = gql`
         __typename
         nodes {
           comment
-          confirmedDatetime
-          entryDatetime
+          allocatedDatetime
+          draftDatetime
           id
           invoiceNumber
           otherPartyId

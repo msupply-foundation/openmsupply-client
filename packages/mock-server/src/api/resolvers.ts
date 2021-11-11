@@ -35,14 +35,14 @@ const getAvailableQuantity = (itemId: string): number => {
 
 const getInvoiceSortKey = (key: string) => {
   switch (key) {
-    case InvoiceSortFieldInput.ConfirmDatetime: {
-      return 'confirmedDatetime';
+    case InvoiceSortFieldInput.AllocatedDatetime: {
+      return 'allocatedDatetime';
     }
-    case InvoiceSortFieldInput.EntryDatetime: {
-      return 'entryDatetime';
+    case InvoiceSortFieldInput.DraftDatetime: {
+      return 'draftDatetime';
     }
-    case InvoiceSortFieldInput.FinalisedDateTime: {
-      return 'finalisedDatetime';
+    case InvoiceSortFieldInput.DeliveredDatetime: {
+      return 'deliveredDatetime';
     }
     case InvoiceSortFieldInput.Comment: {
       return 'comment';

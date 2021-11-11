@@ -337,9 +337,9 @@ input InvoiceFilterInput {
   status: SimpleStringFilterInput
   comment: SimpleStringFilterInput
   theirReference: SimpleStringFilterInput
-  entryDatetime: DatetimeFilterInput
-  confirmDatetime: DatetimeFilterInput
-  finalisedDatetime: DatetimeFilterInput
+  draftDatetime: DatetimeFilterInput
+  allocatedDatetime: DatetimeFilterInput
+  deliveredDatetime: DatetimeFilterInput
 }
 
 type InvoiceLineBelongsToAnotherInvoice implements DeleteOutboundShipmentLineErrorInterface & UpdateOutboundShipmentLineErrorInterface & DeleteInboundShipmentLineErrorInterface & UpdateInboundShipmentLineErrorInterface {
@@ -393,20 +393,20 @@ type InvoiceNode {
   comment: String
   onHold: Boolean!
   entryDatetime: DateTime!
-  confirmedDatetime: DateTime
-  finalisedDatetime: DateTime
+  allocatedDatetime: DateTime
+  deliveredDatetime: DateTime
   lines: InvoiceLinesResponse!
   pricing: InvoicePriceResponse!
 
   ## Additions
   otherParty: NameResponse!
-  draftDatetime: DateTime
+  draftDatetime: DateTime!
   allocatedDatetime: DateTime
   pickedDatetime: DateTime
   shippedDatetime: DateTime
   deliveredDatetime: DateTime
   color: String!
-  enteredByName: String!
+  enteredByName: String
   donorName: String!
   purchaseOrderNumber: Int
   requisitionNumber: Int
@@ -452,17 +452,17 @@ type InvoicePricingNode {
 union InvoiceResponse = NodeError | InvoiceNode
 
 enum InvoiceSortFieldInput {
-  TYPE
-  STATUS
-  ENTRY_DATETIME
-  CONFIRM_DATETIME
-  FINALISED_DATE_TIME
-  COMMENT
+  type
+  otherPartyName
+  invoiceNumber
+  comment
+  status
+  draftDatetime
+  allocatedDatetime
+  deliveredDatetime
 
   ## Additions
-  TOTAL_AFTER_TAX
-  OTHER_PARTY_NAME
-  INVOICE_NUMBER
+  totalAfterTax
 }
 
 input InvoiceSortInput {
@@ -505,8 +505,8 @@ type ItemNode {
 }
 
 enum ItemSortFieldInput {
-  NAME
-  CODE
+  name
+  code
 }
 
 input ItemSortInput {
@@ -608,8 +608,8 @@ type NameNode {
 }
 
 enum NameSortFieldInput {
-  NAME
-  CODE
+  name
+  code
 }
 
 input NameSortInput {

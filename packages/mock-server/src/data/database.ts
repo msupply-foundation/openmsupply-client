@@ -86,12 +86,12 @@ export const get = {
         today: InvoiceData.filter(
           invoice =>
             invoice.type === 'INBOUND_SHIPMENT' &&
-            isToday(new Date(invoice.entryDatetime))
+            isToday(new Date(invoice.draftDatetime))
         ).length,
         thisWeek: InvoiceData.filter(
           invoice =>
             invoice.type === 'INBOUND_SHIPMENT' &&
-            isThisWeek(new Date(invoice.entryDatetime))
+            isThisWeek(new Date(invoice.draftDatetime))
         ).length,
       },
     },

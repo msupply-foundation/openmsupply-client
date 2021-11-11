@@ -278,9 +278,6 @@ export const createInvoice = (
     otherPartyId: otherParty.id,
     invoiceNumber,
     status,
-    entryDatetime: entered.toISOString(),
-    confirmedDatetime: confirmed.toISOString(),
-    finalisedDatetime: null,
     totalAfterTax,
     pricing: {
       __typename: 'InvoicePricingNode',

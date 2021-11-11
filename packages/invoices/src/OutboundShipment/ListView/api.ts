@@ -114,14 +114,14 @@ const getSortKey = (
   sortBy: SortBy<OutboundShipment>
 ): InvoiceSortFieldInput => {
   switch (sortBy.key) {
-    case 'confirmedDatetime': {
-      return InvoiceSortFieldInput.ConfirmDatetime;
+    case 'allocatedDatetime': {
+      return InvoiceSortFieldInput.AllocatedDatetime;
     }
-    case 'entryDatetime': {
-      return InvoiceSortFieldInput.EntryDatetime;
+    case 'draftDatetime': {
+      return InvoiceSortFieldInput.DraftDatetime;
     }
-    case 'finalisedDateTime': {
-      return InvoiceSortFieldInput.FinalisedDateTime;
+    case 'deliveredDateTime': {
+      return InvoiceSortFieldInput.DeliveredDatetime;
     }
     case 'comment': {
       return InvoiceSortFieldInput.Comment;
