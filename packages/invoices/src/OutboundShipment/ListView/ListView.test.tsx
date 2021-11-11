@@ -29,10 +29,10 @@ describe('OutboundShipmentListView', () => {
         getByRole('columnheader', { name: /status/i })
       ).toBeInTheDocument();
       expect(
-        getByRole('columnheader', { name: /entryDatetime/i })
+        getByRole('columnheader', { name: /draftDatetime/i })
       ).toBeInTheDocument();
       expect(
-        getByRole('columnheader', { name: /confirmedDatetime/i })
+        getByRole('columnheader', { name: /allocatedDatetime/i })
       ).toBeInTheDocument();
       expect(
         getByRole('columnheader', { name: /invoicenumber/i })

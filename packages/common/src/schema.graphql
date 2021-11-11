@@ -392,9 +392,6 @@ type InvoiceNode {
   theirReference: String
   comment: String
   onHold: Boolean!
-  entryDatetime: DateTime!
-  allocatedDatetime: DateTime
-  deliveredDatetime: DateTime
   lines: InvoiceLinesResponse!
   pricing: InvoicePriceResponse!
 
@@ -406,7 +403,7 @@ type InvoiceNode {
   shippedDatetime: DateTime
   deliveredDatetime: DateTime
   color: String!
-  enteredByName: String
+  enteredByName: String!
   donorName: String!
   purchaseOrderNumber: Int
   requisitionNumber: Int
