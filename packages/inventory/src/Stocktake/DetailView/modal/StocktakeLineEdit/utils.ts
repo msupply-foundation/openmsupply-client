@@ -59,13 +59,6 @@ export const wrapStocktakeItem = (
     ...seed,
     deleteLines: (ids: string[]) => {
       updater(state => {
-        console.log('-------------------------------------------');
-        console.log(
-          'ids',
-          ids,
-          state.lines.map(({ id }) => id)
-        );
-        console.log('-------------------------------------------');
         return {
           ...state,
           lines: state.lines.filter(({ id }) => !ids.includes(id)),

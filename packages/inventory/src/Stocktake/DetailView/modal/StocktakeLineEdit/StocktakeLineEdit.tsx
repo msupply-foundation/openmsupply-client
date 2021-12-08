@@ -5,8 +5,6 @@ import { StocktakeLineEditForm } from './StocktakeLineEditForm';
 import {
   TableProvider,
   createTableStore,
-  useTableStore,
-  Typography,
   Slide,
   Divider,
   TableContainer,
@@ -21,8 +19,6 @@ import {
   ButtonWithIcon,
   PlusCircleIcon,
   Box,
-  CheckIcon,
-  StockLine,
 } from '@openmsupply-client/common';
 import { StocktakeLineAddBatch } from './StocktakeLineAddBatch';
 import { BatchTable, PricingTable } from './StocktakeLineEditTables';
@@ -65,14 +61,6 @@ export const StocktakeLineEdit: FC<StocktakeLineEditProps> = ({
   }, [item, setWrappedStocktakeItem]);
 
   const batches = wrappedStocktakeItem ? wrappedStocktakeItem.lines : [];
-
-  const onAddBatch = (stockLineId = '') => {
-    if (wrappedStocktakeItem) {
-      wrappedStocktakeItem.upsertLine?.(
-        createStocktakeRow(wrappedStocktakeItem, stockLineId)
-      );
-    }
-  };
 
   const onConfirm = (ids: string[]) => {
     if (wrappedStocktakeItem) {
@@ -185,9 +173,6 @@ export const StocktakeLineEdit: FC<StocktakeLineEditProps> = ({
             draft={draft}
             mode={mode}
             onConfirm={(ids: string[]) => {
-              console.log('-------------------------------------------');
-              console.log('ids', ids);
-              console.log('-------------------------------------------');
               setSlideIn(false);
               onConfirm(ids);
             }}
