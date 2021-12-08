@@ -134,6 +134,8 @@ type StocktakeLineNode {
   countedNumPacks: Int
   sellPricePerPack: Float
   costPricePerPack: Float
+
+  stockLineId: String
 }
 
 input UpdateStocktakeLineInput {

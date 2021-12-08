@@ -96,6 +96,8 @@ export const createStocktakeItem = (
     snapshotNumPacks: () =>
       String(ifTheSameElseDefault(lines, 'snapshotNumPacks', '[multiple]')),
     upsertLine: () => {},
+    deleteLine: () => {},
+    deleteLines: () => {},
   };
 };
 
