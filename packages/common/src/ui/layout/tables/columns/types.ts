@@ -69,6 +69,7 @@ export interface Column<T extends DomainObject> {
   sortInverted: boolean;
   getSortValue?: (row: T) => string | number;
 
+  onChangeWidth?: (x: number) => void;
   onChangeSortBy?: (column: Column<T>) => void;
   sortBy?: SortBy<T>;
 

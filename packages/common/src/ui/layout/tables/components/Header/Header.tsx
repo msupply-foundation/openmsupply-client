@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
-import { TableCell, TableRow, TableSortLabel } from '@mui/material';
+import { Box, TableCell, TableRow, TableSortLabel } from '@mui/material';
 import { Column } from '../../columns/types';
-import { SortDescIcon } from '@common/icons';
+import { MenuDotsIcon, SortDescIcon } from '@common/icons';
 import { DomainObject } from '@common/types';
 import { useDebounceCallback } from '@common/hooks';
 
@@ -37,6 +37,8 @@ export const HeaderCell = <T extends DomainObject>({
     Header,
   } = column;
 
+  const [x, setX] = React.useState(0);
+
   const { direction, key: currentSortKey } = sortBy ?? {};
 
   const isSorted = key === currentSortKey;
@@ -58,8 +60,8 @@ export const HeaderCell = <T extends DomainObject>({
         borderBottom: '0px',
         paddingLeft: '16px',
         paddingRight: '16px',
-        width,
-        minWidth,
+        width: width + 10,
+        minWidth: minWidth + 10,
         flex: `${width} 0 auto`,
         fontWeight: 'bold',
         fontSize: dense ? '12px' : '14px',
@@ -68,17 +70,49 @@ export const HeaderCell = <T extends DomainObject>({
       sortDirection={isSorted ? direction : false}
     >
       {sortable ? (
-        <TableSortLabel
-          hideSortIcon={false}
-          active={isSorted}
-          direction={direction}
-          IconComponent={SortDescIcon}
+        <Box
+          flexDirection="row"
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
         >
-          <Header column={column} />
-        </TableSortLabel>
+          <TableSortLabel
+            hideSortIcon={false}
+            active={isSorted}
+            direction={direction}
+            IconComponent={SortDescIcon}
+          >
+            <Header column={column} />
+          </TableSortLabel>
+
+          {column?.onChangeWidth && (
+            <Box
+              sx={{
+                cursor: 'col-resize',
+                backgroundColor: 'transparent',
+              }}
+              draggable
+              onDragStart={e => {
+                setX(e.clientX);
+              }}
+              onDragEnd={e => {
+                column?.onChangeWidth &&
+                  column.onChangeWidth(
+                    Math.max(column.width + (e.clientX - x), column.minWidth)
+                  );
+
+                setX(e.clientX);
+              }}
+            >
+              <MenuDotsIcon />
+            </Box>
+          )}
+        </Box>
       ) : (
         <Header column={column} />
       )}
     </TableCell>
   );
 };
+
+<div />;

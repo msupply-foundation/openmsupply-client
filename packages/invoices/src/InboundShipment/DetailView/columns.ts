@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   getRowExpandColumn,
   GenericColumnKey,
@@ -12,12 +13,25 @@ import { InvoiceLine, InboundShipmentItem } from './../../types';
 
 export const useInboundShipmentColumns = (): Column<
   InvoiceLine | InboundShipmentItem
->[] =>
-  useColumns<InvoiceLine | InboundShipmentItem>(
+>[] => {
+  const [widths, setWidths] = useState<number[]>([
+    100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
+  ]);
+
+  const updateWidth = (i: number) => (x: number) => {
+    const newWidths = [...widths];
+    newWidths[i] = x;
+    setWidths(newWidths);
+  };
+
+  const columns = useColumns<InvoiceLine | InboundShipmentItem>(
     [
       [
         getNotePopoverColumn(),
         {
+          minWidth: 100,
+          width: widths[0],
+          onChangeWidth: updateWidth(0),
           accessor: ({ rowData }) => {
             if ('lines' in rowData) {
               const noteSections = rowData.lines
@@ -39,6 +53,9 @@ export const useInboundShipmentColumns = (): Column<
       [
         'itemCode',
         {
+          minWidth: 100,
+          width: widths[1],
+          onChangeWidth: updateWidth(1),
           accessor: ({ rowData }) => {
             if ('lines' in rowData) {
               const { lines } = rowData;
@@ -52,6 +69,9 @@ export const useInboundShipmentColumns = (): Column<
       [
         'itemName',
         {
+          minWidth: 100,
+          width: widths[2],
+          onChangeWidth: updateWidth(2),
           accessor: ({ rowData }) => {
             if ('lines' in rowData) {
               const { lines } = rowData;
@@ -65,6 +85,9 @@ export const useInboundShipmentColumns = (): Column<
       [
         'batch',
         {
+          minWidth: 100,
+          width: widths[3],
+          onChangeWidth: updateWidth(3),
           accessor: ({ rowData }) => {
             if ('lines' in rowData) {
               const { lines } = rowData;
@@ -78,6 +101,9 @@ export const useInboundShipmentColumns = (): Column<
       [
         'expiryDate',
         {
+          minWidth: 100,
+          width: widths[4],
+          onChangeWidth: updateWidth(4),
           accessor: ({ rowData }) => {
             if ('lines' in rowData) {
               const { lines } = rowData;
@@ -91,6 +117,9 @@ export const useInboundShipmentColumns = (): Column<
       [
         'locationName',
         {
+          minWidth: 100,
+          width: widths[5],
+          onChangeWidth: updateWidth(5),
           accessor: ({ rowData }) => {
             if ('lines' in rowData) {
               const { lines } = rowData;
@@ -104,6 +133,9 @@ export const useInboundShipmentColumns = (): Column<
       [
         'sellPricePerPack',
         {
+          minWidth: 100,
+          width: widths[6],
+          onChangeWidth: updateWidth(6),
           accessor: ({ rowData }) => {
             if ('lines' in rowData) {
               const { lines } = rowData;
@@ -117,6 +149,9 @@ export const useInboundShipmentColumns = (): Column<
       [
         'packSize',
         {
+          minWidth: 100,
+          width: widths[7],
+          onChangeWidth: updateWidth(7),
           accessor: ({ rowData }) => {
             if ('lines' in rowData) {
               const { lines } = rowData;
@@ -130,6 +165,9 @@ export const useInboundShipmentColumns = (): Column<
       [
         'unitQuantity',
         {
+          minWidth: 100,
+          width: widths[8],
+          onChangeWidth: updateWidth(8),
           accessor: ({ rowData }) => {
             if ('lines' in rowData) {
               const { lines } = rowData;
@@ -143,6 +181,9 @@ export const useInboundShipmentColumns = (): Column<
       [
         'numberOfPacks',
         {
+          minWidth: 100,
+          width: widths[9],
+          onChangeWidth: updateWidth(9),
           accessor: ({ rowData }) => {
             if ('lines' in rowData) {
               const { lines } = rowData;
@@ -153,12 +194,26 @@ export const useInboundShipmentColumns = (): Column<
           },
         },
       ],
-      getRowExpandColumn(),
+      [
+        getRowExpandColumn(),
+        {
+          onChangeWidth: updateWidth(10),
+          minWidth: 100,
+          width: widths[10],
+        },
+      ],
       GenericColumnKey.Selection,
     ],
     {},
-    []
+    [widths]
   );
+
+  console.log('-------------------------------------------');
+  console.log('columns', columns);
+  console.log('-------------------------------------------');
+
+  return columns;
+};
 
 export const useExpansionColumns = (): Column<InvoiceLine>[] =>
   useColumns([

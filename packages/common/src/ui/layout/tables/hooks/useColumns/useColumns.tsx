@@ -27,7 +27,6 @@ const getColumnWidths = <T extends DomainObject>(
   };
 
   const defaultWidth = getDefaultWidth();
-
   const minWidth = column.minWidth || column.width || defaultWidth;
   const width = column.width || defaultWidth;
 
@@ -162,8 +161,9 @@ export const createColumnWithDefaults = <T extends DomainObject>(
     align: getDefaultColumnAlign(column),
     formatter: getDefaultFormatter<T>(column),
     setter: getDefaultColumnSetter<T>(column),
+    onChangeWidth: column?.onChangeWidth,
 
-    ...getColumnWidths(column),
+    ...getColumnWidths({ ...column, ...options }),
   };
 
   return { ...defaults, ...column };
