@@ -208,10 +208,6 @@ export const useInboundShipmentColumns = (): Column<
     [widths]
   );
 
-  console.log('-------------------------------------------');
-  console.log('columns', columns);
-  console.log('-------------------------------------------');
-
   return columns;
 };
 
