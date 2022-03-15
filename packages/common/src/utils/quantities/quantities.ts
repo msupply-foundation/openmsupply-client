@@ -15,4 +15,6 @@ export const QuantityUtils = {
 
     return Math.max(suggested, 0);
   },
+  unitQuantity: (line: { numberOfPacks: number; packSize: number }) =>
+    line.numberOfPacks * line.packSize,
 };

@@ -2,39 +2,9 @@ import {
   InvoiceLineNodeType,
   InvoiceNodeStatus,
   DateUtils,
+  SortUtils,
 } from '@openmsupply-client/common';
 import { DraftOutboundLine } from './../../../types';
-
-export const sortByExpiry = (a: DraftOutboundLine, b: DraftOutboundLine) => {
-  const expiryA = new Date(a.expiryDate ?? '');
-  const expiryB = new Date(b.expiryDate ?? '');
-
-  if (expiryA < expiryB) {
-    return -1;
-  }
-  if (expiryA > expiryB) {
-    return 1;
-  }
-
-  return 0;
-};
-
-export const sortByExpiryDesc = (
-  a: DraftOutboundLine,
-  b: DraftOutboundLine
-) => {
-  const expiryA = new Date(a.expiryDate ?? '');
-  const expiryB = new Date(b.expiryDate ?? '');
-
-  if (expiryA < expiryB) {
-    return 1;
-  }
-  if (expiryA > expiryB) {
-    return -1;
-  }
-
-  return 0;
-};
 
 export const sumAvailableQuantity = (
   draftOutboundLines: DraftOutboundLine[]
@@ -115,7 +85,7 @@ export const allocateQuantities =
           !stockLine?.onHold &&
           !(!!expiryDate && DateUtils.isExpired(new Date(expiryDate)))
       )
-      .sort(sortByExpiry);
+      .sort(SortUtils.byExpiryAsc);
 
     validBatches.forEach(batch => {
       const draftOutboundLineIdx = newDraftOutboundLines.findIndex(
@@ -144,7 +114,7 @@ export const allocateQuantities =
     // if over-allocated due to pack sizes available, reduce allocation as needed
     if (toAllocate < 0) {
       toAllocate *= -1;
-      validBatches.sort(sortByExpiryDesc).forEach(batch => {
+      validBatches.sort(SortUtils.byExpiryDesc).forEach(batch => {
         const draftOutboundLineIdx = newDraftOutboundLines.findIndex(
           ({ id }) => batch.id === id
         );
