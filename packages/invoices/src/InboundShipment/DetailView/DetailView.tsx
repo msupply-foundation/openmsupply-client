@@ -8,6 +8,7 @@ import {
   useNavigate,
   RouteBuilder,
   useTranslation,
+  usePageTitle,
 } from '@openmsupply-client/common';
 import { AppRoute } from '@openmsupply-client/config';
 import { toItemRow, ItemRowFragment } from '@openmsupply-client/system';
@@ -27,6 +28,7 @@ export const DetailView: FC = () => {
     useEditModal<ItemRowFragment>();
   const navigate = useNavigate();
   const t = useTranslation('replenishment');
+  usePageTitle(t('app.inbound-shipments'));
 
   const onRowClick = React.useCallback(
     (line: InboundItem | InboundLineFragment) => {

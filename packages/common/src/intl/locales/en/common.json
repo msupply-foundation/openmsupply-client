@@ -1,4 +1,5 @@
 {
+  "app": "mSupply",
   "app.admin": "Admin",
   "app.catalogue": "Catalogue",
   "app.customer-requisition": "Requisitions",

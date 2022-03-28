@@ -8,6 +8,7 @@ import {
   useNavigate,
   RouteBuilder,
   useTranslation,
+  usePageTitle,
 } from '@openmsupply-client/common';
 import { toItemRow, ItemRowFragment } from '@openmsupply-client/system';
 import { ContentArea } from './ContentArea';
@@ -22,11 +23,12 @@ import { AppRoute } from '@openmsupply-client/config';
 import { OutboundLineFragment } from '../api/operations.generated';
 
 export const DetailView: FC = () => {
+  const t = useTranslation('distribution');
+  usePageTitle(t('app.outbound-shipments'));
   const isDisabled = useOutbound.utils.isDisabled();
   const { entity, mode, onOpen, onClose, isOpen } =
     useEditModal<ItemRowFragment>();
   const { data, isLoading } = useOutbound.document.get();
-  const t = useTranslation('distribution');
   const navigate = useNavigate();
   const onRowClick = useCallback(
     (item: OutboundLineFragment | OutboundItem) => {

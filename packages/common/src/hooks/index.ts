@@ -16,6 +16,7 @@ export * from './useIsMountedRef';
 export * from './useIsScreen';
 export * from './useNotification';
 export * from './useOpenInNewTab';
+export * from './usePageTitle';
 export * from './usePagination';
 export * from './useQueryParams';
 export * from './useSortBy';

@@ -10,6 +10,7 @@ import {
   InvoiceNodeStatus,
   useCurrency,
   useTableStore,
+  usePageTitle,
 } from '@openmsupply-client/common';
 import { getStatusTranslator, isOutboundDisabled } from '../../utils';
 import { Toolbar } from './Toolbar';
@@ -28,6 +29,7 @@ const useDisableOutboundRows = (rows?: OutboundRowFragment[]) => {
 export const OutboundShipmentListViewComponent: FC = () => {
   const { mutate: onUpdate } = useOutbound.document.update();
   const t = useTranslation('common');
+  usePageTitle(t('app.outbound-shipments'));
   const navigate = useNavigate();
 
   const {

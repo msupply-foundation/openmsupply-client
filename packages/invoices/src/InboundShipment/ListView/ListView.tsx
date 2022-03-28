@@ -10,6 +10,7 @@ import {
   useTranslation,
   useCurrency,
   useTableStore,
+  usePageTitle,
 } from '@openmsupply-client/common';
 import { Toolbar } from './Toolbar';
 import { AppBarButtons } from './AppBarButtons';
@@ -40,6 +41,7 @@ export const InboundListView: FC = () => {
   useDisableInboundRows(data?.nodes);
 
   const t = useTranslation();
+  usePageTitle(t('app.inbound-shipments'));
 
   const columns = useColumns<InboundRowFragment>(
     [
