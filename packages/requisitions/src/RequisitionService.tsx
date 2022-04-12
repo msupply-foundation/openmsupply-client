@@ -1,13 +1,13 @@
 import React, { FC } from 'react';
 
 import {
-  ListView as SupplierRequisitionListView,
-  DetailView as SupplierRequisitionDetailView,
-} from './SupplierRequisition';
+  ListView as RequestRequisitionListView,
+  DetailView as RequestRequisitionDetailView,
+} from './RequestRequisition';
 import {
-  ListView as CustomerRequisitionListView,
-  DetailView as CustomerRequisitionDetailView,
-} from './CustomerRequisition';
+  ListView as ResponseRequisitionListView,
+  DetailView as ResponseRequisitionDetailView,
+} from './ResponseRequisition';
 import { RouteBuilder, Routes, Route } from '@openmsupply-client/common';
 import { AppRoute } from '@openmsupply-client/config';
 
@@ -17,16 +17,12 @@ const customerRequisitionsRoute = RouteBuilder.create(
 const customerRequisitionRoute = RouteBuilder.create(
   AppRoute.CustomerRequisition
 )
-  .addPart(':id')
+  .addPart(':requisitionNumber')
   .build();
 
-const supplierRequisitionsRoute = RouteBuilder.create(
-  AppRoute.SupplierRequisition
-).build();
-const supplierRequisitionRoute = RouteBuilder.create(
-  AppRoute.SupplierRequisition
-)
-  .addPart(':id')
+const internalOrdersRoute = RouteBuilder.create(AppRoute.InternalOrder).build();
+const internalOrderRoute = RouteBuilder.create(AppRoute.InternalOrder)
+  .addPart(':requisitionNumber')
   .build();
 
 export const RequisitionService: FC = () => {
@@ -34,19 +30,19 @@ export const RequisitionService: FC = () => {
     <Routes>
       <Route
         path={customerRequisitionsRoute}
-        element={<CustomerRequisitionListView />}
+        element={<ResponseRequisitionListView />}
       />
       <Route
         path={customerRequisitionRoute}
-        element={<CustomerRequisitionDetailView />}
+        element={<ResponseRequisitionDetailView />}
       />
       <Route
-        path={supplierRequisitionsRoute}
-        element={<SupplierRequisitionListView />}
+        path={internalOrdersRoute}
+        element={<RequestRequisitionListView />}
       />
       <Route
-        path={supplierRequisitionRoute}
-        element={<SupplierRequisitionDetailView />}
+        path={internalOrderRoute}
+        element={<RequestRequisitionDetailView />}
       />
     </Routes>
   );

@@ -1,53 +1,48 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useEffect } from 'react';
 import {
   useNavigate,
   DataTable,
   useColumns,
-  useListData,
   getNameAndColorColumn,
   TableProvider,
   createTableStore,
   InvoiceNodeStatus,
-  useOmSupplyApi,
-  useNotification,
-  generateUUID,
   useTranslation,
+  useCurrency,
+  useTableStore,
 } from '@openmsupply-client/common';
-import { getInboundShipmentListViewApi } from './api';
-import { NameSearchModal } from '@openmsupply-client/system';
 import { Toolbar } from './Toolbar';
 import { AppBarButtons } from './AppBarButtons';
-import { InvoiceRow } from '../../types';
-import { getStatusTranslator } from '../../utils';
+import { getStatusTranslator, isInboundDisabled } from '../../utils';
+import { useInbounds, useUpdateInbound, InboundRowFragment } from '../api';
+
+const useDisableInboundRows = (rows?: InboundRowFragment[]) => {
+  const { setDisabledRows } = useTableStore();
+  useEffect(() => {
+    const disabledRows = rows?.filter(isInboundDisabled).map(({ id }) => id);
+    if (disabledRows) setDisabledRows(disabledRows);
+  }, [rows]);
+};
 
 export const InboundListView: FC = () => {
+  const { mutate: onUpdate } = useUpdateInbound();
   const navigate = useNavigate();
-  const { error } = useNotification();
-  const { api } = useOmSupplyApi();
+  const { c } = useCurrency();
   const {
-    totalCount,
     data,
+    isError,
     isLoading,
-    onDelete,
-    onUpdate,
     sortBy,
     onChangeSortBy,
-    onCreate,
     onChangePage,
     pagination,
     filter,
-    invalidate,
-  } = useListData(
-    {
-      initialSortBy: { key: 'otherPartyName' },
-      initialFilterBy: { type: { equalTo: 'INBOUND_SHIPMENT' } },
-    },
-    'invoice',
-    getInboundShipmentListViewApi(api)
-  );
+  } = useInbounds();
+  useDisableInboundRows(data?.nodes);
+
   const t = useTranslation();
 
-  const columns = useColumns<InvoiceRow>(
+  const columns = useColumns<InboundRowFragment>(
     [
       [getNameAndColorColumn(), { setter: onUpdate }],
       [
@@ -57,13 +52,15 @@ export const InboundListView: FC = () => {
             getStatusTranslator(t)(status as InvoiceNodeStatus),
         },
       ],
-      'invoiceNumber',
+      ['invoiceNumber', { maxWidth: 80 }],
       'createdDatetime',
       'allocatedDatetime',
-      'comment',
+      ['comment', { width: '100%' }],
       [
         'totalAfterTax',
-        { accessor: ({ rowData }) => rowData.pricing.totalAfterTax },
+        {
+          accessor: ({ rowData }) => c(rowData.pricing.totalAfterTax).format(),
+        },
       ],
       'selection',
     ],
@@ -71,51 +68,21 @@ export const InboundListView: FC = () => {
     [sortBy]
   );
 
-  const [open, setOpen] = useState(false);
-
   return (
     <>
-      <NameSearchModal
-        type="supplier"
-        open={open}
-        onClose={() => setOpen(false)}
-        onChange={async name => {
-          setOpen(false);
-
-          const createInvoice = async () => {
-            const invoice = {
-              id: generateUUID(),
-              otherPartyId: name?.id,
-            };
-
-            try {
-              const result = await onCreate(invoice);
-              invalidate();
-              navigate(result);
-            } catch (e) {
-              const errorSnack = error(
-                'Failed to create invoice! ' + (e as Error).message
-              );
-              errorSnack();
-            }
-          };
-
-          createInvoice();
-        }}
-      />
-
-      <Toolbar onDelete={onDelete} data={data} filter={filter} />
-      <AppBarButtons onCreate={setOpen} />
+      <Toolbar filter={filter} />
+      <AppBarButtons />
 
       <DataTable
-        pagination={{ ...pagination, total: totalCount }}
+        pagination={{ ...pagination, total: data?.totalCount }}
         onChangePage={onChangePage}
         columns={columns}
-        data={data ?? []}
+        data={data?.nodes ?? []}
         isLoading={isLoading}
         onRowClick={row => {
-          navigate(row.id);
+          navigate(String(row.invoiceNumber));
         }}
+        isError={isError}
       />
     </>
   );

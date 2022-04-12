@@ -2,80 +2,80 @@ import React, { FC } from 'react';
 import {
   TableProvider,
   createTableStore,
-  Item,
+  useEditModal,
+  DetailViewSkeleton,
+  AlertModal,
+  useNavigate,
+  RouteBuilder,
+  useTranslation,
 } from '@openmsupply-client/common';
-import { useDraftInbound } from './api';
+import { AppRoute } from '@openmsupply-client/config';
+import { toItemRow, ItemRowFragment } from '@openmsupply-client/system';
 import { Toolbar } from './Toolbar';
 import { Footer } from './Footer';
 import { AppBarButtons } from './AppBarButtons';
 import { SidePanel } from './SidePanel';
-import { GeneralTab } from './GeneralTab';
-import { InboundLineEdit } from './modals/InboundLineEdit/InboundLineEdit';
-import { isInboundEditable } from '../../utils';
-import { InvoiceLine, InboundShipmentItem } from '../../types';
-
-export enum ModalMode {
-  Create,
-  Update,
-}
-
-export const toItem = (line: InboundShipmentItem | InvoiceLine): Item => ({
-  id: 'lines' in line ? line.lines[0].id : line.itemId,
-  name: 'lines' in line ? line.lines[0].itemName : line.itemName,
-  code: 'lines' in line ? line.lines[0].itemCode : line.itemCode,
-  isVisible: true,
-  availableBatches: [],
-  availableQuantity: 0,
-  unitName: 'bottle',
-});
+import { ContentArea } from './ContentArea';
+import { InboundLineEdit } from './modals/InboundLineEdit';
+import { InboundItem } from '../../types';
+import { useInbound, InboundLineFragment, useIsInboundDisabled } from '../api';
 
 export const DetailView: FC = () => {
-  const { draft } = useDraftInbound();
-
-  const [modalState, setModalState] = React.useState<{
-    item: Item | null;
-    mode: ModalMode;
-    open: boolean;
-  }>({ mode: ModalMode.Create, item: null, open: false });
+  const { data, isLoading } = useInbound();
+  const isDisabled = useIsInboundDisabled();
+  const { onOpen, onClose, mode, entity, isOpen } =
+    useEditModal<ItemRowFragment>();
+  const navigate = useNavigate();
+  const t = useTranslation('replenishment');
 
   const onRowClick = React.useCallback(
-    (line: InboundShipmentItem | InvoiceLine) => {
-      const item = toItem(line);
-      setModalState({ mode: ModalMode.Update, item, open: true });
+    (line: InboundItem | InboundLineFragment) => {
+      onOpen(toItemRow(line));
     },
-    [setModalState]
+    [onOpen]
   );
 
-  const onClose = () => {
-    setModalState({ mode: ModalMode.Create, item: null, open: false });
-  };
-
-  const onAddItem = () => {
-    setModalState({ mode: ModalMode.Create, item: null, open: true });
-  };
-
-  if (!draft) return null;
+  if (isLoading) return <DetailViewSkeleton hasGroupBy={true} hasHold={true} />;
 
   return (
-    <TableProvider createStore={createTableStore}>
-      <AppBarButtons
-        isDisabled={!isInboundEditable(draft)}
-        onAddItem={onAddItem}
-      />
+    <React.Suspense
+      fallback={<DetailViewSkeleton hasGroupBy={true} hasHold={true} />}
+    >
+      {data ? (
+        <TableProvider createStore={createTableStore}>
+          <AppBarButtons onAddItem={() => onOpen()} />
 
-      <Toolbar draft={draft} />
+          <Toolbar />
 
-      <GeneralTab onRowClick={onRowClick} />
+          <ContentArea onRowClick={!isDisabled ? onRowClick : null} />
 
-      <Footer />
-      <SidePanel />
+          <Footer />
+          <SidePanel />
 
-      <InboundLineEdit
-        isOpen={modalState.open}
-        onClose={onClose}
-        mode={modalState.mode}
-        item={modalState.item}
-      />
-    </TableProvider>
+          {isOpen && (
+            <InboundLineEdit
+              isDisabled={isDisabled}
+              isOpen={isOpen}
+              onClose={onClose}
+              mode={mode}
+              item={entity}
+            />
+          )}
+        </TableProvider>
+      ) : (
+        <AlertModal
+          open={true}
+          onOk={() =>
+            navigate(
+              RouteBuilder.create(AppRoute.Replenishment)
+                .addPart(AppRoute.InboundShipment)
+                .build()
+            )
+          }
+          title={t('error.shipment-not-found')}
+          message={t('messages.click-to-return-to-shipments')}
+        />
+      )}
+    </React.Suspense>
   );
 };

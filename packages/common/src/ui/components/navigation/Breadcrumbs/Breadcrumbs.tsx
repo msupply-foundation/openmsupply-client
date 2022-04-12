@@ -1,15 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { styled } from '@mui/material/styles';
-import { Typography } from '@mui/material';
-import { useLocation, Link } from 'react-router-dom';
-
-import { LocaleKey, useTranslation } from '@common/intl';
-
-interface UrlPart {
-  path: string;
-  key: LocaleKey;
-  value: string;
-}
+import { Breadcrumbs as MuiBreadcrumbs } from '@mui/material';
+import { Link } from 'react-router-dom';
+import { useRegisterActions, useBreadcrumbs } from '@openmsupply-client/common';
+import { useTranslation } from '@common/intl';
+import { UrlPart } from '@common/hooks';
 
 const Breadcrumb = styled(Link)({
   color: 'inherit',
@@ -18,49 +13,48 @@ const Breadcrumb = styled(Link)({
 });
 
 export const Breadcrumbs: React.FC = () => {
-  const t = useTranslation(['app', 'common']);
-  const location = useLocation();
-  const [urlParts, setUrlParts] = useState<UrlPart[]>([]);
+  const t = useTranslation('app');
+  const { urlParts, navigateUpOne, suffix } = useBreadcrumbs();
 
-  useEffect(() => {
-    const parts = location.pathname.split('/');
-    const urlParts: UrlPart[] = [];
+  useRegisterActions(
+    [
+      {
+        id: 'navigation:up-one-level',
+        name: '', // No name => won't show in Modal menu
+        shortcut: ['escape'],
+        keywords: 'navigate, back',
+        perform: () => navigateUpOne(),
+      },
+    ],
+    [urlParts]
+  );
 
-    parts.reduce((fullPath, part, index) => {
-      if (part === '') return '';
-      const path = `${fullPath}/${part}`;
-
-      if (index > 1)
-        urlParts.push({
-          path,
-          key: `${part}` as unknown as LocaleKey,
-          value: part,
-        });
-      return path;
-    }, '');
-    setUrlParts(urlParts);
-  }, [location]);
+  const parseTitle = (part: UrlPart) =>
+    /^\d+$/.test(part.value)
+      ? t('breadcrumb.item', { id: part.value })
+      : t(part.key);
 
   const crumbs = urlParts.map((part, index) => {
     if (index === urlParts.length - 1) {
-      const title = /^\d+$/.test(part.value)
-        ? t('breadcrumb.item', { id: part.value })
-        : t(part.key);
-
-      return <span key={part.key}>{title}</span>;
+      return <span key={part.key}>{suffix ?? parseTitle(part)}</span>;
     }
 
     return (
-      <span key={part.key}>
-        <Breadcrumb to={part.path}>{t(part.key)}</Breadcrumb>
-        {' / '}
-      </span>
+      <Breadcrumb to={part.path} key={part.key}>
+        {t(part.key)}
+      </Breadcrumb>
     );
   });
 
   return (
-    <Typography variant="h6" color="inherit" noWrap>
+    <MuiBreadcrumbs
+      sx={{
+        fontSize: '16px',
+        color: theme => theme.typography.body1.color,
+        fontWeight: 500,
+      }}
+    >
       {crumbs}
-    </Typography>
+    </MuiBreadcrumbs>
   );
 };

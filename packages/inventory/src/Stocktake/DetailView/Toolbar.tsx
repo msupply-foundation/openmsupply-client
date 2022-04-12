@@ -6,40 +6,28 @@ import {
   DropdownMenuItem,
   DeleteIcon,
   useTranslation,
-  useNotification,
-  useTableStore,
-  BasicTextInput,
+  BufferedTextInput,
+  useBufferState,
   InputWithLabelRow,
   DatePickerInput,
+  Formatter,
 } from '@openmsupply-client/common';
-import { StocktakeController, StocktakeItem } from '../../types';
-import { isStocktakeEditable } from '../../utils';
+import {
+  useStocktakeFields,
+  useIsStocktakeDisabled,
+  useDeleteSelectedLines,
+} from '../api';
 
-interface ToolbarProps {
-  draft: StocktakeController;
-}
-
-export const Toolbar: FC<ToolbarProps> = ({ draft }) => {
-  const t = useTranslation(['distribution', 'common', 'inventory']);
-  const { success, info } = useNotification();
-
-  const { selectedRows } = useTableStore(state => ({
-    selectedRows: Object.keys(state.rowState)
-      .filter(id => state.rowState[id]?.isSelected)
-      .map(selectedId => draft.lines.find(({ id }) => selectedId === id))
-      .filter(Boolean) as StocktakeItem[],
-  }));
-
-  const deleteAction = () => {
-    if (selectedRows && selectedRows?.length > 0) {
-      const successSnack = success(`Deleted ${selectedRows?.length} lines`);
-      successSnack();
-    } else {
-      const infoSnack = info(t('label.select-rows-to-delete-them'));
-      infoSnack();
-    }
-  };
-
+export const Toolbar: FC = () => {
+  const t = useTranslation('inventory');
+  const isDisabled = useIsStocktakeDisabled();
+  const { stocktakeDate, description, update } = useStocktakeFields([
+    'description',
+    'stocktakeDate',
+  ]);
+  const { onDelete } = useDeleteSelectedLines();
+  const [descriptionBuffer, setDescriptionBuffer] = useBufferState(description);
+  const [bufferedDate, setBufferedDate] = useBufferState(stocktakeDate);
   return (
     <AppBarContentPortal sx={{ display: 'flex', flex: 1, marginBottom: 1 }}>
       <Grid
@@ -53,37 +41,37 @@ export const Toolbar: FC<ToolbarProps> = ({ draft }) => {
           <InputWithLabelRow
             label={t('heading.description')}
             Input={
-              <BasicTextInput
-                disabled={!isStocktakeEditable(draft)}
+              <BufferedTextInput
+                disabled={isDisabled}
                 size="small"
                 sx={{ width: 220 }}
-                value={draft.description ?? ''}
+                value={descriptionBuffer ?? ''}
                 onChange={event => {
-                  draft.update('description', event.target.value);
+                  setDescriptionBuffer(event.target.value);
+                  update({ description: event.target.value });
                 }}
               />
             }
           />
-
           <InputWithLabelRow
-            label={t('label.stocktake-date', { ns: 'inventory' })}
+            label={t('label.stocktake-date')}
             Input={
               <DatePickerInput
-                disabled={!isStocktakeEditable(draft)}
-                value={draft.stocktakeDatetime}
-                onChange={newDate => {
-                  draft.updateStocktakeDatetime(newDate);
+                disabled={isDisabled}
+                value={bufferedDate ? new Date(bufferedDate) : null}
+                onChange={d => {
+                  const naiveDate = Formatter.naiveDate(d);
+                  setBufferedDate(naiveDate);
+                  update({ stocktakeDate: naiveDate });
                 }}
               />
             }
           />
         </Grid>
+
         <Grid item>
-          <DropdownMenu
-            disabled={!isStocktakeEditable(draft)}
-            label={t('label.select')}
-          >
-            <DropdownMenuItem IconComponent={DeleteIcon} onClick={deleteAction}>
+          <DropdownMenu disabled={isDisabled} label={t('label.actions')}>
+            <DropdownMenuItem IconComponent={DeleteIcon} onClick={onDelete}>
               {t('button.delete-lines', { ns: 'distribution' })}
             </DropdownMenuItem>
           </DropdownMenu>

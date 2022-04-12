@@ -1,0 +1,239 @@
+mutation updateResponse(
+  $storeId: String!
+  $input: UpdateResponseRequisitionInput!
+) {
+  updateResponseRequisition(input: $input, storeId: $storeId) {
+    ... on RequisitionNode {
+      __typename
+      id
+    }
+  }
+}
+
+fragment ResponseLine on RequisitionLineNode {
+  id
+  itemId
+  requestedQuantity
+  supplyQuantity
+  remainingQuantityToSupply
+  comment
+
+  itemStats {
+    __typename
+    availableStockOnHand
+    availableMonthsOfStockOnHand
+    averageMonthlyConsumption
+  }
+  item {
+    id
+    name
+    code
+    unitName
+  }
+  linkedRequisitionLine {
+    itemStats {
+      availableStockOnHand
+    }
+  }
+}
+
+fragment Response on RequisitionNode {
+  __typename
+  id
+  type
+  status
+  createdDatetime
+  sentDatetime
+  finalisedDatetime
+  requisitionNumber
+  colour
+  theirReference
+  comment
+  otherPartyName
+  otherPartyId
+  maxMonthsOfStock
+  minMonthsOfStock
+
+  user {
+    __typename
+    username
+    email
+  }
+
+  shipments {
+    __typename
+    totalCount
+    nodes {
+      __typename
+      id
+      invoiceNumber
+      createdDatetime
+
+      user {
+        __typename
+        username
+      }
+    }
+  }
+
+  linesRemainingToSupply {
+    __typename
+    totalCount
+  }
+
+  lines {
+    __typename
+    ... on RequisitionLineConnector {
+      totalCount
+      nodes {
+        ...ResponseLine
+      }
+    }
+  }
+
+  otherParty(storeId: $storeId) {
+    __typename
+    id
+    code
+    isCustomer
+    isSupplier
+    name
+    store {
+      id
+      code
+    }
+  }
+}
+query responseByNumber($storeId: String!, $requisitionNumber: Int!) {
+  requisitionByNumber(
+    requisitionNumber: $requisitionNumber
+    type: RESPONSE
+    storeId: $storeId
+  ) {
+    __typename
+    ... on RequisitionNode {
+      ...Response
+    }
+  }
+}
+
+fragment ResponseRow on RequisitionNode {
+  colour
+  comment
+  createdDatetime
+  finalisedDatetime
+  id
+  otherPartyName
+  requisitionNumber
+  sentDatetime
+  status
+  theirReference
+  type
+  otherPartyId
+}
+
+query responses(
+  $storeId: String!
+  $filter: RequisitionFilterInput
+  $page: PaginationInput
+  $sort: [RequisitionSortInput!]
+) {
+  requisitions(storeId: $storeId, filter: $filter, page: $page, sort: $sort) {
+    ... on RequisitionConnector {
+      totalCount
+      nodes {
+        ...ResponseRow
+      }
+    }
+  }
+}
+
+mutation updateResponseLine(
+  $storeId: String!
+  $input: UpdateResponseRequisitionLineInput!
+) {
+  updateResponseRequisitionLine(input: $input, storeId: $storeId) {
+    ... on RequisitionLineNode {
+      __typename
+      id
+    }
+    ... on UpdateResponseRequisitionLineError {
+      __typename
+      error {
+        description
+        ... on CannotEditRequisition {
+          __typename
+          description
+        }
+        ... on ForeignKeyError {
+          __typename
+          description
+          key
+        }
+        ... on RecordNotFound {
+          __typename
+          description
+        }
+      }
+    }
+  }
+}
+
+mutation createOutboundFromResponse($responseId: String!, $storeId: String!) {
+  createRequisitionShipment(
+    input: { responseRequisitionId: $responseId }
+    storeId: $storeId
+  ) {
+    __typename
+    ... on InvoiceNode {
+      __typename
+      id
+      invoiceNumber
+    }
+    ... on CreateRequisitionShipmentError {
+      __typename
+      error {
+        description
+        ... on CannotEditRequisition {
+          __typename
+          description
+        }
+        ... on NothingRemainingToSupply {
+          __typename
+          description
+        }
+        ... on RecordNotFound {
+          __typename
+          description
+        }
+      }
+    }
+  }
+}
+
+mutation supplyRequestedQuantity($responseId: String!, $storeId: String!) {
+  supplyRequestedQuantity(
+    input: { responseRequisitionId: $responseId }
+    storeId: $storeId
+  ) {
+    ... on SupplyRequestedQuantityError {
+      __typename
+      error {
+        ... on RecordNotFound {
+          __typename
+          description
+        }
+        description
+        ... on CannotEditRequisition {
+          __typename
+          description
+        }
+      }
+    }
+    ... on RequisitionLineConnector {
+      nodes {
+        id
+      }
+    }
+  }
+}

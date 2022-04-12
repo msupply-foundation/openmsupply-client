@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
+import DialogContent, { DialogContentProps } from '@mui/material/DialogContent';
+import { TransitionProps } from '@mui/material/transitions';
 import { Slide } from '../../ui/animations';
 import { BasicModal, ModalTitle } from '@common/components';
+import { IntlUtils } from '@common/intl';
+import { SxProps, Theme } from '@mui/material';
 
 export interface ButtonProps {
   icon?: React.ReactElement;
@@ -12,20 +15,28 @@ export interface ButtonProps {
 }
 
 export interface ModalProps {
+  contentProps?: DialogContentProps;
   children: React.ReactElement<any, any>;
   cancelButton?: JSX.Element;
   height?: number;
   nextButton?: React.ReactElement<{
     onClick: () => Promise<boolean>;
   }>;
-
+  slideAnimation?: boolean;
+  Transition?: React.ForwardRefExoticComponent<
+    TransitionProps & {
+      children: React.ReactElement;
+    } & React.RefAttributes<unknown>
+  >;
   okButton?: JSX.Element;
   width?: number;
+  sx?: SxProps<Theme>;
   title: string;
 }
 export interface DialogProps {
   onClose?: () => void;
   isOpen?: boolean;
+  animationTimeout?: number;
 }
 
 interface DialogState {
@@ -42,27 +53,34 @@ enum Direction {
   Down = 'down',
 }
 
-const useSlideAnimation = () => {
+const useSlideAnimation = (isRtl: boolean, timeout: number) => {
   const [slideConfig, setSlide] = useState({
     in: true,
-    direction: Direction.Right,
+    direction: isRtl ? Direction.Left : Direction.Right,
   });
 
   const onTriggerSlide = () => {
-    setSlide({ in: false, direction: Direction.Left });
+    setSlide({
+      in: false,
+      direction: isRtl ? Direction.Right : Direction.Left,
+    });
     setTimeout(() => {
-      setSlide({ in: true, direction: Direction.Right });
-    }, 500);
+      setSlide({
+        in: true,
+        direction: isRtl ? Direction.Left : Direction.Right,
+      });
+    }, timeout);
   };
 
   return { slideConfig, onTriggerSlide };
 };
 
 export const useDialog = (dialogProps?: DialogProps): DialogState => {
-  const { onClose, isOpen } = dialogProps ?? {};
+  const { onClose, isOpen, animationTimeout = 500 } = dialogProps ?? {};
   const [open, setOpen] = React.useState(false);
   const showDialog = () => setOpen(true);
   const hideDialog = () => setOpen(false);
+  const isRtl = IntlUtils.useRtl();
 
   useEffect(() => {
     if (isOpen != null) setOpen(isOpen);
@@ -81,13 +99,18 @@ export const useDialog = (dialogProps?: DialogProps): DialogState => {
     okButton,
     width,
     title,
+    contentProps,
+    slideAnimation = true,
+    Transition,
+    sx = {},
   }) => {
     // The slide animation is triggered by cloning the next button and wrapping the passed
     // on click with a trigger to slide.
-    const { slideConfig, onTriggerSlide } = useSlideAnimation();
+    const { slideConfig, onTriggerSlide } = useSlideAnimation(
+      isRtl,
+      animationTimeout
+    );
 
-    // TODO: If you want to disable the slide, add a prop `slidesOnNext` or something,
-    // with a default of true and check before doing all this.
     let WrappedNextButton: ModalProps['nextButton'] = undefined;
     if (nextButton) {
       const { onClick, ...restOfNextButtonProps } = nextButton.props;
@@ -95,27 +118,39 @@ export const useDialog = (dialogProps?: DialogProps): DialogState => {
       // TODO: If you want to change the slide direction or other animation details, add a prop
       // slideAnimationConfig and add a parameter to `useSlideAnimation` to pass in the config.
       WrappedNextButton = React.cloneElement(nextButton, {
-        onClick: async () => {
-          const result = await onClick();
-          if (!!result) onTriggerSlide();
-          return result;
-        },
+        onClick: slideAnimation
+          ? async () => {
+              const result = await onClick();
+              if (!!result) onTriggerSlide();
+              return result;
+            }
+          : onClick,
         ...restOfNextButtonProps,
       });
     }
 
+    const { sx: contentSX, ...restOfContentProps } = contentProps ?? {};
     return (
       <BasicModal
         open={open}
         onClose={handleClose}
         width={width}
         height={height}
+        sx={sx}
+        TransitionComponent={Transition}
       >
-        <ModalTitle title={title} />
-        <DialogContent sx={{ overflowX: 'hidden' }}>
-          <Slide in={slideConfig.in} direction={slideConfig.direction}>
-            <div> {children}</div>
-          </Slide>
+        {title ? <ModalTitle title={title} /> : null}
+        <DialogContent
+          {...restOfContentProps}
+          sx={{ overflowX: 'hidden', ...contentSX }}
+        >
+          {slideAnimation ? (
+            <Slide in={slideConfig.in} direction={slideConfig.direction}>
+              <div>{slideConfig.in && children}</div>
+            </Slide>
+          ) : (
+            <div>{children}</div>
+          )}
         </DialogContent>
         <DialogActions
           sx={{

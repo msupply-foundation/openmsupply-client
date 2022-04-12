@@ -1,53 +1,49 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useEffect } from 'react';
 import {
   useNavigate,
   DataTable,
   useColumns,
-  useListData,
   getNameAndColorColumn,
   TableProvider,
   createTableStore,
-  useOmSupplyApi,
-  useNotification,
   useTranslation,
   InvoiceNodeStatus,
+  useCurrency,
+  useTableStore,
 } from '@openmsupply-client/common';
-import { NameSearchModal } from '@openmsupply-client/system/src/Name';
-import { getStatusTranslator } from '../../utils';
+import { getStatusTranslator, isOutboundDisabled } from '../../utils';
 import { Toolbar } from './Toolbar';
 import { AppBarButtons } from './AppBarButtons';
-import { getOutboundShipmentListViewApi } from './api';
-import { InvoiceRow } from '../../types';
+import { useOutbound } from '../api';
+import { OutboundRowFragment } from '../api/operations.generated';
+
+const useDisableOutboundRows = (rows?: OutboundRowFragment[]) => {
+  const { setDisabledRows } = useTableStore();
+  useEffect(() => {
+    const disabledRows = rows?.filter(isOutboundDisabled).map(({ id }) => id);
+    if (disabledRows) setDisabledRows(disabledRows);
+  }, [rows]);
+};
 
 export const OutboundShipmentListViewComponent: FC = () => {
+  const { mutate: onUpdate } = useOutbound.document.update();
   const t = useTranslation('common');
   const navigate = useNavigate();
-  const { error } = useNotification();
-  const { api } = useOmSupplyApi();
 
   const {
-    totalCount,
     data,
+    isError,
     isLoading,
-    onDelete,
-    onUpdate,
     sortBy,
     onChangeSortBy,
-    onCreate,
     onChangePage,
     pagination,
     filter,
-    invalidate,
-  } = useListData(
-    {
-      initialSortBy: { key: 'otherPartyName' },
-      initialFilterBy: { type: { equalTo: 'OUTBOUND_SHIPMENT' } },
-    },
-    'invoice',
-    getOutboundShipmentListViewApi(api)
-  );
+  } = useOutbound.document.list();
+  useDisableOutboundRows(data?.nodes);
 
-  const columns = useColumns<InvoiceRow>(
+  const { c } = useCurrency();
+  const columns = useColumns<OutboundRowFragment>(
     [
       [getNameAndColorColumn(), { setter: onUpdate }],
       [
@@ -57,13 +53,23 @@ export const OutboundShipmentListViewComponent: FC = () => {
             getStatusTranslator(t)(status as InvoiceNodeStatus),
         },
       ],
-      'invoiceNumber',
+      [
+        'invoiceNumber',
+        { description: 'description.invoice-number', maxWidth: 110 },
+      ],
       'createdDatetime',
-      // 'allocatedDatetime',
-      'comment',
+      {
+        description: 'description.customer-reference',
+        key: 'theirReference',
+        label: 'label.reference',
+      },
+      ['comment'],
       [
         'totalAfterTax',
-        { accessor: ({ rowData }) => rowData.pricing.totalAfterTax },
+        {
+          accessor: ({ rowData }) => c(rowData.pricing.totalAfterTax).format(),
+          width: '100%',
+        },
       ],
       'selection',
     ],
@@ -71,50 +77,20 @@ export const OutboundShipmentListViewComponent: FC = () => {
     [sortBy]
   );
 
-  const [open, setOpen] = useState(false);
-
   return (
     <>
-      <NameSearchModal
-        type="customer"
-        open={open}
-        onClose={() => setOpen(false)}
-        onChange={async name => {
-          setOpen(false);
-
-          const createInvoice = async () => {
-            const invoice = {
-              id: String(Math.ceil(Math.random() * 1000000)),
-              otherPartyId: name?.id,
-            };
-
-            try {
-              const result = await onCreate(invoice);
-              invalidate();
-              navigate(result);
-            } catch (e) {
-              const errorSnack = error(
-                'Failed to create invoice! ' + (e as Error).message
-              );
-              errorSnack();
-            }
-          };
-
-          createInvoice();
-        }}
-      />
-
-      <Toolbar onDelete={onDelete} data={data} filter={filter} />
-      <AppBarButtons onCreate={setOpen} />
+      <Toolbar filter={filter} />
+      <AppBarButtons />
 
       <DataTable
-        pagination={{ ...pagination, total: totalCount }}
+        pagination={{ ...pagination, total: data?.totalCount }}
         onChangePage={onChangePage}
         columns={columns}
-        data={data ?? []}
+        data={data?.nodes ?? []}
+        isError={isError}
         isLoading={isLoading}
         onRowClick={row => {
-          navigate(row.id);
+          navigate(String(row.invoiceNumber));
         }}
       />
     </>

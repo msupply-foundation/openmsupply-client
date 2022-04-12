@@ -1,9 +1,10 @@
 import { getCheckboxSelectionColumn } from '../columns/CheckboxSelectionColumn';
 import { ColumnAlign, ColumnFormat } from '../columns/types';
-import { DomainObject } from '@common/types';
+import { Formatter } from '@common/utils';
+import { RecordWithId } from '@common/types';
 import { ColumnDefinition } from '../columns/types';
 
-const createColumn = <T extends DomainObject>(
+const createColumn = <T extends RecordWithId>(
   column: ColumnDefinition<T>
 ): ColumnDefinition<T> => {
   return column;
@@ -37,59 +38,40 @@ export type ColumnKey =
   | 'lineTotal'
   | 'stocktakeNumber'
   | 'description'
-  | 'stocktakeDatetime'
+  | 'stocktakeDate'
   | 'monthlyConsumption'
-  | 'previousStockOnHand'
-  | 'calculatedQuantity'
   | 'requestedQuantity'
-  | 'forecastMethod';
+  | 'supplyQuantity'
+  | 'stockOnHand';
 
-const getColumnLookup = <T extends DomainObject>(): Record<
+const getColumnLookup = <T extends RecordWithId>(): Record<
   ColumnKey,
   ColumnDefinition<T>
 > => ({
-  requestedQuantity: {
-    key: 'requestedQuantity',
-    label: 'label.requested-quantity',
-    align: ColumnAlign.Right,
-    width: 100,
-  },
   monthlyConsumption: {
     key: 'monthlyConsumption',
-    label: 'label.average-monthly-consumption',
+    label: 'label.amc',
+    description: 'description.average-monthly-consumption',
     align: ColumnAlign.Left,
     width: 100,
   },
-  previousStockOnHand: {
-    key: 'previousStockOnHand',
-    label: 'label.stock-on-hand',
-    align: ColumnAlign.Left,
-    width: 125,
-  },
-  calculatedQuantity: {
-    key: 'calculatedQuantity',
-    label: 'label.forecast-quantity',
-    align: ColumnAlign.Left,
-    width: 125,
-  },
-  forecastMethod: {
-    key: 'forecastMethod',
-    label: 'label.forecast-method',
-    align: ColumnAlign.Left,
-    width: 55,
-  },
+
   numberOfPacks: {
     key: 'numberOfPacks',
     format: ColumnFormat.Integer,
     align: ColumnAlign.Right,
+    description: 'description.pack-quantity',
     label: 'label.pack-quantity',
     width: 100,
   },
   expiryDate: {
     key: 'expiryDate',
-    format: ColumnFormat.Date,
     label: 'label.expiry',
     width: 100,
+    formatter: dateString =>
+      dateString
+        ? Formatter.expiryDate(new Date(dateString as string)) || ''
+        : '',
   },
 
   itemCode: {
@@ -100,7 +82,7 @@ const getColumnLookup = <T extends DomainObject>(): Record<
   itemName: {
     key: 'itemName',
     label: 'label.name',
-    width: 300,
+    maxWidth: 400,
   },
   name: {
     key: 'name',
@@ -120,6 +102,7 @@ const getColumnLookup = <T extends DomainObject>(): Record<
   },
   invoiceNumber: {
     key: 'invoiceNumber',
+    align: ColumnAlign.Right,
     label: 'label.invoice-number',
     width: 50,
   },
@@ -134,14 +117,15 @@ const getColumnLookup = <T extends DomainObject>(): Record<
     width: 75,
   },
   createdDatetime: {
+    description: 'description.entered',
     label: 'label.entered',
     key: 'createdDatetime',
     format: ColumnFormat.Date,
     width: 100,
   },
-  stocktakeDatetime: {
+  stocktakeDate: {
     label: 'label.date',
-    key: 'stocktakeDatetime',
+    key: 'stocktakeDate',
     format: ColumnFormat.Date,
     width: 100,
   },
@@ -154,6 +138,7 @@ const getColumnLookup = <T extends DomainObject>(): Record<
   },
 
   totalAfterTax: {
+    description: 'description.total',
     label: 'label.total',
     key: 'totalAfterTax',
     width: 100,
@@ -180,10 +165,11 @@ const getColumnLookup = <T extends DomainObject>(): Record<
   packSize: {
     label: 'label.pack-size',
     key: 'packSize',
-    width: 100,
+    width: 125,
     align: ColumnAlign.Right,
   },
   quantity: {
+    description: 'description.pack-quantity',
     label: 'label.pack-quantity',
     key: 'quantity',
     width: 100,
@@ -218,9 +204,10 @@ const getColumnLookup = <T extends DomainObject>(): Record<
   locationName: {
     label: 'label.location',
     key: 'locationName',
-    width: 100,
+    width: 75,
   },
   unitQuantity: {
+    description: 'description.unit-quantity',
     label: 'label.unit-quantity',
     key: 'unitQuantity',
     width: 100,
@@ -229,7 +216,7 @@ const getColumnLookup = <T extends DomainObject>(): Record<
   itemUnit: {
     label: 'label.unit',
     key: 'unit',
-    width: 50,
+    width: 75,
   },
   lineTotal: {
     label: 'label.line-total',
@@ -238,9 +225,29 @@ const getColumnLookup = <T extends DomainObject>(): Record<
     align: ColumnAlign.Right,
     format: ColumnFormat.Currency,
   },
+  requestedQuantity: {
+    label: 'label.requested-quantity',
+    description: 'description.requested-quantity',
+    key: 'requestedQuantity',
+    width: 100,
+    align: ColumnAlign.Right,
+  },
+  supplyQuantity: {
+    label: 'label.supply-quantity',
+    description: 'description.supply-quantity',
+    key: 'supplyQuantity',
+    width: 100,
+    align: ColumnAlign.Right,
+  },
+  stockOnHand: {
+    label: 'label.stock-on-hand',
+    key: 'availableStockOnHand',
+    width: 100,
+    align: ColumnAlign.Right,
+  },
 });
 
-export class ColumnDefinitionSetBuilder<T extends DomainObject> {
+export class ColumnDefinitionSetBuilder<T extends RecordWithId> {
   columns: ColumnDefinition<T>[];
 
   currentOrder: number;

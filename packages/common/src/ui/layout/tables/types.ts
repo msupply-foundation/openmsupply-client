@@ -1,5 +1,5 @@
 import { ReactNode, FC } from 'react';
-import { DomainObject } from '@common/types';
+import { RecordWithId } from '@common/types';
 import { Pagination, SortRule } from '@common/hooks';
 import { Column } from './columns/types';
 
@@ -14,15 +14,17 @@ export interface QueryResponse<T> {
   totalLength: number;
 }
 
-export interface TableProps<T extends DomainObject> {
+export interface TableProps<T extends RecordWithId> {
+  children?: ReactNode;
   columns: Column<T>[];
   data?: T[];
+  dense?: boolean;
+  ExpandContent?: FC<{ rowData: T }>;
+  isDisabled?: boolean;
+  isError?: boolean;
   isLoading?: boolean;
+  noDataMessage?: string;
   pagination?: Pagination & { total?: number };
   onChangePage?: (page: number) => void;
-  onRowClick?: (row: T) => void;
-  children?: ReactNode;
-  noDataMessage?: string;
-  ExpandContent?: FC<{ rowData: T }>;
-  dense?: boolean;
+  onRowClick?: null | ((row: T) => void);
 }

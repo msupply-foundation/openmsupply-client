@@ -1,20 +1,20 @@
 import React, { ReactElement } from 'react';
 import { CellProps, HeaderProps } from '../columns/types';
-import { DomainObject } from '@common/types';
-import { useTranslation, useFormatDate } from '@common/intl';
+import { RecordWithId } from '@common/types';
+import { useTranslation, useFormatDateTime } from '@common/intl';
 
 export * from './DataRow';
 export * from './Cells';
 export * from './Header';
 export * from './Expand';
 
-export const BasicCell = <T extends DomainObject>({
+export const BasicCell = <T extends RecordWithId>({
   column,
   rowData,
   rows,
 }: CellProps<T>): ReactElement => {
   const t = useTranslation();
-  const d = useFormatDate();
+  const { localisedDate: d } = useFormatDateTime();
 
   return (
     <div
@@ -28,7 +28,7 @@ export const BasicCell = <T extends DomainObject>({
   );
 };
 
-export const BasicHeader = <T extends DomainObject>({
+export const BasicHeader = <T extends RecordWithId>({
   column,
 }: HeaderProps<T>): ReactElement => {
   const t = useTranslation();

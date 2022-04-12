@@ -1,4 +1,5 @@
 export enum AppRoute {
+  Login = 'login',
   Distribution = 'distribution',
   OutboundShipment = 'outbound-shipment',
   CustomerRequisition = 'customer-requisition',
@@ -8,12 +9,14 @@ export enum AppRoute {
 
   Replenishment = 'replenishment',
   InboundShipment = 'inbound-shipment',
-  SupplierRequisition = 'supplier-requisition',
+  InternalOrder = 'internal-order',
   Suppliers = 'suppliers',
 
   Inventory = 'inventory',
   Stock = 'stock',
-  Stocktake = 'stocktake',
+  Stocktakes = 'stocktakes',
+  Locations = 'locations',
+  MasterLists = 'master-lists',
 
   Tools = 'tools',
 

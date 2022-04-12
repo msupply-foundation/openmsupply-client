@@ -32,9 +32,9 @@ const getLabelStyle = (
   const margin = size === 'medium' ? '0' : '3px';
   switch (labelPlacement) {
     case 'end':
-      return { marginLeft: margin };
+      return { marginInlineStart: margin };
     case 'start':
-      return { marginRight: margin };
+      return { marginInlineEnd: margin };
     default:
       return {};
   }
@@ -67,7 +67,7 @@ export const Switch: React.FC<SwitchProps> = ({
     width: isSmall ? '40px' : '70px',
     padding: isSmall ? '1px' : '6px 12px',
     '& .MuiSwitch-switchBase': {
-      paddingLeft: '3px',
+      paddingLeft: isSmall ? '3px' : '15px',
       right: 'auto', // emotion is setting this and making a mess
     },
     '& .MuiSwitch-thumb': {
@@ -112,7 +112,7 @@ export const Switch: React.FC<SwitchProps> = ({
       disabled={disabled}
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      label={label}
+      label={label ?? <span />}
       labelPlacement={labelPlacement}
       onChange={onChange}
       sx={labelStyle}

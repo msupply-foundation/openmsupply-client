@@ -1,19 +1,18 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import { DomainObject } from '@common/types';
+import { RecordWithId } from '@common/types';
 import { ColumnDefinition } from '../columns/types';
 import { ColorSelectButton } from '@common/components';
 
-interface DomainObjectWithRequiredFields extends DomainObject {
-  color?: string | null;
+interface RecordWithIdWithRequiredFields extends RecordWithId {
+  colour?: string | null;
   otherPartyName: string;
 }
 
 export const getNameAndColorColumn = <
-  T extends DomainObjectWithRequiredFields
+  T extends RecordWithIdWithRequiredFields
 >(): ColumnDefinition<T> => ({
   label: 'label.name',
-  width: 350,
   setter: () => {
     if (process.env['NODE_ENV']) {
       throw new Error(
@@ -27,7 +26,7 @@ export const getNameAndColorColumn = <
   },
   accessor: ({ rowData }) => rowData.otherPartyName,
   key: 'otherPartyName',
-  Cell: ({ rowData, column, rows }) => (
+  Cell: ({ rowData, column, rows, isDisabled }) => (
     <Box
       sx={{
         flexDirection: 'row',
@@ -37,11 +36,13 @@ export const getNameAndColorColumn = <
       }}
     >
       <ColorSelectButton
-        onChange={color => column.setter({ ...rowData, color: color.hex })}
-        color={rowData.color}
+        disabled={isDisabled}
+        onChange={color => column.setter({ ...rowData, colour: color.hex })}
+        color={rowData.colour}
       />
       <Box ml={1} />
       {column.accessor({ rowData, rows })}
     </Box>
   ),
+  minWidth: 400,
 });

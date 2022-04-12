@@ -1,5 +1,5 @@
 import { DependencyList, useMemo } from 'react';
-import { DomainObject } from '@common/types';
+import { RecordWithId } from '@common/types';
 import {
   ColumnDataAccessor,
   ColumnDefinition,
@@ -7,31 +7,30 @@ import {
   ColumnAlign,
   Column,
 } from '../../columns/types';
-import { useFormatDate, useFormatNumber } from '@common/intl';
+import { useFormatCurrency, useFormatDateTime, DateUtils } from '@common/intl';
 import { BasicCell, BasicHeader } from '../../components';
-import { getDateOrNull } from '../../../../../utils';
 import { SortBy } from '@common/hooks';
 import { ColumnDefinitionSetBuilder, ColumnKey } from '../../utils';
 
-const getColumnWidths = <T extends DomainObject>(
-  column: ColumnDefinition<T>
-) => {
-  const getDefaultWidth = () => {
-    switch (column.format) {
-      case ColumnFormat.Integer:
-        return 60;
-      default: {
-        return 100;
-      }
-    }
-  };
+// const getColumnWidths = <T extends DomainObject>(
+//   column: ColumnDefinition<T>
+// ) => {
+//   const getDefaultWidth = () => {
+//     switch (column.format) {
+//       case ColumnFormat.Integer:
+//         return 60;
+//       default: {
+//         return 100;
+//       }
+//     }
+//   };
 
-  const defaultWidth = getDefaultWidth();
-  const minWidth = column.minWidth || column.width || defaultWidth;
-  const width = column.width || defaultWidth;
+//   const defaultWidth = getDefaultWidth();
+//   const minWidth = column.minWidth || column.width || defaultWidth;
+//   const width = column.width || defaultWidth;
 
-  return { minWidth, width };
-};
+//   return { minWidth, width };
+// };
 
 const getSortType = (column: { format?: ColumnFormat }) => {
   switch (column.format) {
@@ -51,7 +50,7 @@ const getSortType = (column: { format?: ColumnFormat }) => {
  * If the key is not a value of the domain object, then you should provide your own data accessor.
  */
 const getDefaultAccessor =
-  <T extends DomainObject>(
+  <T extends RecordWithId>(
     column: ColumnDefinition<T>
   ): ColumnDataAccessor<T> =>
   ({ rowData }) => {
@@ -61,38 +60,36 @@ const getDefaultAccessor =
   };
 
 const getDefaultColumnSetter =
-  <T extends DomainObject>(column: ColumnDefinition<T>) =>
+  <T extends RecordWithId>(column: ColumnDefinition<T>) =>
   () => {
     if (process.env['NODE_ENV']) {
-      throw new Error(
-        `The cell from the column with key [${column.key}] called the default setter.
-         Did you forget to set a custom setter?
-         When defining your columns, add a setter for this column, i.e.
-         const columns = useColumns(['${column.key}', { Cell: TextInputCell, setter }])
-         `
-      );
+      throw new Error('');
+      // `The cell from the column with key [${column.key}] called the default setter.
+      //  Did you forget to set a custom setter?
+      //  When defining your columns, add a setter for this column, i.e.
+      //  const columns = useColumns(['${column.key}', { Cell: TextInputCell, setter }])
+      //  `
     }
   };
 
-const getDefaultFormatter = <T extends DomainObject>(
+const getDefaultFormatter = <T extends RecordWithId>(
   column: ColumnDefinition<T>
 ) => {
   switch (column.format) {
     case ColumnFormat.Date: {
       return (date: unknown) => {
-        const formatDate = useFormatDate();
-        const maybeDate = getDateOrNull(date as string);
-        return maybeDate ? formatDate(maybeDate) : '';
+        const { localisedDate } = useFormatDateTime();
+        const maybeDate = DateUtils.getDateOrNull(date as string | null);
+        return maybeDate ? localisedDate(maybeDate) : '';
       };
     }
     case ColumnFormat.Currency: {
       return (value: unknown) => {
         if (Number.isNaN(Number(value))) return '';
 
-        const formatNumber = useFormatNumber();
+        const formatCurrency = useFormatCurrency();
 
-        // TODO: fetch currency symbol or use style: 'currency'
-        return `$${formatNumber(Number(value))}`;
+        return `${formatCurrency(Number(value))}`;
       };
     }
     default: {
@@ -101,7 +98,7 @@ const getDefaultFormatter = <T extends DomainObject>(
   }
 };
 
-const getDefaultColumnAlign = <T extends DomainObject>(
+const getDefaultColumnAlign = <T extends RecordWithId>(
   column: ColumnDefinition<T>
 ) => {
   const { format } = column;
@@ -127,29 +124,30 @@ const getDefaultColumnAlign = <T extends DomainObject>(
   return ColumnAlign.Left;
 };
 
-interface ColumnOptions<T extends DomainObject> {
+interface ColumnOptions<T extends RecordWithId> {
   onChangeSortBy?: (column: Column<T>) => void;
   sortBy?: SortBy<T>;
 }
 
-type ColumnDescription<T extends DomainObject> =
+export type ColumnDescription<T extends RecordWithId> =
   | ColumnDefinition<T>
   | ColumnKey
   | [ColumnKey | ColumnDefinition<T>, Omit<ColumnDefinition<T>, 'key'>]
   | [ColumnKey];
 
-export const createColumnWithDefaults = <T extends DomainObject>(
+export const createColumnWithDefaults = <T extends RecordWithId>(
   column: ColumnDefinition<T>,
   options?: ColumnOptions<T>
 ): Column<T> => {
   const defaults: Omit<Column<T>, 'key'> = {
     label: '',
+    description: '',
     format: ColumnFormat.Text,
 
     Cell: BasicCell,
     Header: BasicHeader,
 
-    sortable: true,
+    sortable: !!options?.onChangeSortBy,
     sortInverted: column.format === ColumnFormat.Date,
     sortDescFirst: column.format === ColumnFormat.Date,
 
@@ -161,15 +159,15 @@ export const createColumnWithDefaults = <T extends DomainObject>(
     align: getDefaultColumnAlign(column),
     formatter: getDefaultFormatter<T>(column),
     setter: getDefaultColumnSetter<T>(column),
-    onChangeWidth: column?.onChangeWidth,
+    // onChangeWidth: column?.onChangeWidth,
 
-    ...getColumnWidths({ ...column, ...options }),
+    // ...getColumnWidths({ ...column, ...options }),
   };
 
   return { ...defaults, ...column };
 };
 
-export const createColumns = <T extends DomainObject>(
+export const createColumns = <T extends RecordWithId>(
   columnsToCreate: ColumnDescription<T>[],
   options?: ColumnOptions<T>
 ): Column<T>[] => {
@@ -182,7 +180,7 @@ export const createColumns = <T extends DomainObject>(
   });
 };
 
-export const useColumns = <T extends DomainObject>(
+export const useColumns = <T extends RecordWithId>(
   columnsToCreate: ColumnDescription<T>[],
   options?: ColumnOptions<T>,
   depsArray: DependencyList = []

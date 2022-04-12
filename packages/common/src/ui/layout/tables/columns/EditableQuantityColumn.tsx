@@ -1,10 +1,10 @@
 import { InputAdornment, Tooltip, Typography } from '@mui/material';
 import React, { useState, useEffect } from 'react';
 import { ColumnDefinition } from './types';
-import { DomainObject } from '@common/types';
+import { RecordWithId } from '@common/types';
 import { NumericTextInput } from '@common/components';
 
-interface SomeQuantityEntity extends DomainObject {
+interface SomeQuantityEntity extends RecordWithId {
   quantity: number;
   updateQuantity: (quantity: number) => void;
 }
@@ -14,7 +14,7 @@ export const getEditableQuantityColumn = <
 >(): ColumnDefinition<T> => ({
   key: 'quantity',
   width: 100,
-  Cell: ({ rowData }) => {
+  Cell: ({ rowData, isDisabled }) => {
     const { quantity } = rowData;
     const [buffer, setBuffer] = useState(String(quantity));
     const [value, setValue] = useState(quantity);
@@ -52,6 +52,7 @@ export const getEditableQuantityColumn = <
           maxHeight: 40,
         }}
         error={error}
+        disabled={isDisabled}
         size="small"
         hiddenLabel
         value={buffer}

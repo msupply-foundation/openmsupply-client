@@ -4,18 +4,20 @@ import { BarChartIcon, InlineSpinner, StockIcon } from '../../../';
 
 export type Stat = {
   label: string;
-  value: number;
+  value: string;
 };
 export interface StatsPanelProps {
   isLoading: boolean;
   stats: Stat[];
   title: string;
+  width?: number;
 }
 
 export const StatsPanel: FC<StatsPanelProps> = ({
   isLoading,
   stats,
   title,
+  width,
 }) => {
   const Statistic: FC<Stat> = ({ label, value }) => (
     <Grid container alignItems="center" style={{ height: 30 }}>
@@ -30,7 +32,7 @@ export const StatsPanel: FC<StatsPanelProps> = ({
           color: 'gray.main',
           fontSize: '12px',
           fontWeight: 500,
-          marginLeft: '8px',
+          marginInlineStart: '8px',
         }}
       >
         {label}
@@ -47,11 +49,12 @@ export const StatsPanel: FC<StatsPanelProps> = ({
         boxShadow: theme => theme.shadows[1],
         padding: '14px 24px',
         minWidth: '300px',
+        width: width ? `${width}px` : undefined,
       }}
     >
       <Grid container>
         <Grid alignItems="center" display="flex">
-          <Grid item style={{ marginRight: 8 }}>
+          <Grid item style={{ marginInlineEnd: 8 }}>
             <StockIcon
               color="secondary"
               style={{

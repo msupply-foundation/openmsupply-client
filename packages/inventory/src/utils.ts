@@ -1,88 +1,44 @@
 import {
+  LocaleKey,
   StocktakeNodeStatus,
   useTranslation,
 } from '@openmsupply-client/common';
-import {
-  StocktakeItem,
-  StocktakeLine,
-  StocktakeController,
-  StocktakeRow,
-} from './types';
+import { StocktakeRowFragment } from './Stocktake/api';
 
-export const placeholderStocktake: StocktakeController = {
-  id: '',
-  comment: '',
-  description: '',
-  lines: [],
-  status: StocktakeNodeStatus.Suggested,
-  stocktakeDatetime: null,
-  stocktakeNumber: 0,
-  enteredByName: '',
-  entryDatetime: new Date(),
-  onHold: false,
-  update: () => {
-    throw new Error("Placeholder updater triggered - this shouldn't happen!");
-  },
-  updateStocktakeDatetime: () => {
-    throw new Error("Placeholder updater triggered - this shouldn't happen!");
-  },
-  updateOnHold: () => {
-    throw new Error("Placeholder updater triggered - this shouldn't happen!");
-  },
-  updateStatus: () => {
-    throw new Error("Placeholder updater triggered - this shouldn't happen!");
-  },
-  sortBy: () => {
-    throw new Error("Placeholder updater triggered - this shouldn't happen!");
-  },
-  upsertItem: () => {
-    throw new Error("Placeholder updater triggered - this shouldn't happen!");
-  },
-};
-
-export const isStocktakeEditable = (
-  stocktake: StocktakeController
-): boolean => {
-  return stocktake.status !== 'FINALISED';
-};
-
-export const flattenStocktakeItems = (
-  summaryItems: StocktakeItem[]
-): StocktakeLine[] => {
-  return summaryItems.map(({ lines }) => Object.values(lines)).flat();
-};
-
-export const getStocktakeStatuses = (): StocktakeNodeStatus[] => [
-  StocktakeNodeStatus.Suggested,
+export const stocktakeStatuses = [
+  StocktakeNodeStatus.New,
   StocktakeNodeStatus.Finalised,
 ];
 
-export const getNextStocktakeStatus = (
-  currentStatus: StocktakeNodeStatus
-): StocktakeNodeStatus => {
-  const statuses = getStocktakeStatuses();
-  const currentStatusIdx = statuses.findIndex(
-    status => currentStatus === status
-  );
-
-  const nextStatus = statuses[currentStatusIdx + 1];
-
-  if (!nextStatus) throw new Error('Could not find the next status');
-
-  return nextStatus;
+const stocktakeStatusToLocaleKey: Record<StocktakeNodeStatus, LocaleKey> = {
+  [StocktakeNodeStatus.New]: 'label.new',
+  [StocktakeNodeStatus.Finalised]: 'label.finalised',
 };
 
-// TODO: When stocktake statuses are finalised, this function should be passed
-// `t` and should properly translate the status.
+export const getStatusTranslation = (status: StocktakeNodeStatus) => {
+  return stocktakeStatusToLocaleKey[status];
+};
+
+export const getNextStocktakeStatus = (
+  currentStatus: StocktakeNodeStatus
+): StocktakeNodeStatus | null => {
+  const idx = stocktakeStatuses.findIndex(status => currentStatus === status);
+  const nextStatus = stocktakeStatuses[idx + 1];
+  return nextStatus ?? null;
+};
+
 export const getStocktakeTranslator =
   (t: ReturnType<typeof useTranslation>) =>
-  (currentStatus: StocktakeNodeStatus): string => {
-    if (currentStatus === StocktakeNodeStatus.Suggested) {
-      return t('label.suggested', { ns: 'inventory' });
+  (currentStatus: StocktakeNodeStatus | null): string => {
+    if (currentStatus === StocktakeNodeStatus.New) {
+      return t('label.new', { ns: 'inventory' });
     }
 
     return t('label.finalised', { ns: 'inventory' });
   };
 
-export const canDeleteStocktake = (row: StocktakeRow): boolean =>
-  row.status === StocktakeNodeStatus.Suggested;
+export const canDeleteStocktake = (row: StocktakeRowFragment): boolean =>
+  row.status === StocktakeNodeStatus.New;
+
+export const isStocktakeDisabled = (row: StocktakeRowFragment): boolean =>
+  row.status !== StocktakeNodeStatus.New || row.isLocked;

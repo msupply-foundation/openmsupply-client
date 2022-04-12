@@ -3,9 +3,9 @@ import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import { ChevronDownIcon } from '@common/icons';
-import { useTranslation, useFormatDate } from '@common/intl';
+import { useTranslation, useFormatDateTime } from '@common/intl';
 import { VerticalStepper } from '../../steppers/VerticalStepper';
-import { PaperPopover, PaperPopoverSection } from '../../popover';
+import { PaperHoverPopover, PaperPopoverSection } from '../../popover';
 import { useIsSmallScreen } from '@common/hooks';
 import { styled } from '@mui/material/styles';
 
@@ -25,10 +25,12 @@ const useSteps = <StatusType extends string>({
   statusLog,
   statusFormatter,
 }: StatusCrumbsProps<StatusType>) => {
-  const d = useFormatDate();
+  const { localisedDate } = useFormatDateTime();
   return statuses.map(status => ({
     label: statusFormatter(status),
-    description: statusLog[status] ? d(new Date(statusLog[status] ?? '')) : '',
+    description: statusLog[status]
+      ? localisedDate(new Date(statusLog[status] ?? ''))
+      : '',
   }));
 };
 
@@ -69,7 +71,7 @@ export const StatusCrumbs = <StatusType extends string>(
   }
 
   return (
-    <PaperPopover
+    <PaperHoverPopover
       placement="top"
       width={250}
       Content={
@@ -102,6 +104,6 @@ export const StatusCrumbs = <StatusType extends string>(
           {Crumbs}
         </Breadcrumbs>
       </Box>
-    </PaperPopover>
+    </PaperHoverPopover>
   );
 };

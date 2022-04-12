@@ -1,12 +1,17 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect } from 'react';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import { Column } from '../../columns/types';
-import { DomainObject } from '@common/types';
-import { useExpanded, useDisabled } from '../../context';
-import { Collapse } from '@mui/material';
+import { RecordWithId } from '@common/types';
+import {
+  useExpanded,
+  useIsDisabled,
+  useIsFocused,
+  useRowStyle,
+} from '../../context';
+import { Collapse, Fade } from '@mui/material';
 
-interface DataRowProps<T extends DomainObject> {
+interface DataRowProps<T extends RecordWithId> {
   columns: Column<T>[];
   rows: T[];
   onClick?: (rowData: T) => void;
@@ -15,9 +20,10 @@ interface DataRowProps<T extends DomainObject> {
   ExpandContent?: FC<{ rowData: T }>;
   dense?: boolean;
   rowIndex: number;
+  keyboardActivated?: boolean;
 }
 
-export const DataRow = <T extends DomainObject>({
+export const DataRow = <T extends RecordWithId>({
   columns,
   onClick,
   rowData,
@@ -26,69 +32,93 @@ export const DataRow = <T extends DomainObject>({
   ExpandContent,
   dense = false,
   rows,
+  keyboardActivated,
 }: DataRowProps<T>): JSX.Element => {
   const hasOnClick = !!onClick;
   const { isExpanded } = useExpanded(rowData.id);
-  const { isDisabled } = useDisabled(rowData.id);
+  const { isDisabled } = useIsDisabled(rowData.id);
+  const { isFocused } = useIsFocused(rowData.id);
+  const { rowStyle } = useRowStyle(rowData.id);
 
   const onRowClick = () => onClick && onClick(rowData);
-  const minWidth = columns.reduce((sum, { minWidth }) => sum + minWidth, 0);
+  const paddingX = dense ? '12px' : '16px';
+  const paddingY = dense ? '4px' : 0;
+
+  useEffect(() => {
+    if (isFocused) onRowClick();
+  }, [keyboardActivated]);
 
   return (
     <>
-      <TableRow
-        sx={{
-          color: isDisabled ? 'gray.main' : 'black',
-          minWidth,
-          alignItems: 'center',
-          height: '40px',
-          maxHeight: '45px',
-          boxShadow: dense
-            ? 'none'
-            : 'inset 0 0.5px 0 0 rgba(143, 144, 166, 0.5)',
-          display: 'flex',
-          flex: '1 0 auto',
-        }}
-        onClick={onRowClick}
-        hover={hasOnClick}
-      >
-        {columns.map((column, columnIndex) => {
-          return (
-            <TableCell
-              key={`${rowKey}${column.key}`}
-              align={column.align}
-              sx={{
-                borderBottom: 'none',
-                justifyContent: 'flex-end',
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
-                paddingLeft: '16px',
-                paddingRight: '16px',
-                ...(hasOnClick && { cursor: 'pointer' }),
-                flex: `${column.width} 0 auto`,
-                minWidth: column.minWidth,
-                width: column.width,
-                color: 'inherit',
-                fontSize: dense ? '12px' : '14px',
-                padding: dense ? '12px' : undefined,
-              }}
-            >
-              <column.Cell
-                rows={rows}
-                rowData={rowData}
-                columns={columns}
-                column={column}
-                rowKey={rowKey}
-                columnIndex={columnIndex}
-                rowIndex={rowIndex}
-              />
-            </TableCell>
-          );
-        })}
-      </TableRow>
+      <Fade in={true} timeout={500}>
+        <TableRow
+          sx={{
+            '&.MuiTableRow-root': {
+              '&:hover': hasOnClick
+                ? { backgroundColor: 'background.menu' }
+                : {},
+            },
+            color: isDisabled ? 'gray.main' : 'black',
+            backgroundColor: isFocused ? 'background.menu' : null,
+            alignItems: 'center',
+            height: '40px',
+            maxHeight: '45px',
+            boxShadow: dense
+              ? 'none'
+              : 'inset 0 0.5px 0 0 rgba(143, 144, 166, 0.5)',
+            ...rowStyle,
+          }}
+          onClick={onRowClick}
+        >
+          {columns.map((column, columnIndex) => {
+            return (
+              <TableCell
+                key={`${rowKey}${column.key}`}
+                align={column.align}
+                sx={{
+                  borderBottom: 'none',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  paddingLeft: paddingX,
+                  paddingRight: paddingX,
+                  paddingTop: paddingY,
+                  paddingBottom: paddingY,
+                  ...(hasOnClick && { cursor: 'pointer' }),
+                  minWidth: column.minWidth,
+                  maxWidth: column.maxWidth,
+                  width: column.width,
+                  color: 'inherit',
+                  fontSize: dense ? '12px' : '14px',
+                  backgroundColor: column.backgroundColor,
+                  fontWeight: 'normal',
+                }}
+              >
+                <column.Cell
+                  isDisabled={isDisabled}
+                  rows={rows}
+                  rowData={rowData}
+                  columns={columns}
+                  column={column}
+                  rowKey={rowKey}
+                  columnIndex={columnIndex}
+                  rowIndex={rowIndex}
+                />
+              </TableCell>
+            );
+          })}
+        </TableRow>
+      </Fade>
       <tr>
-        <td style={{ display: 'flex' }}>
-          <Collapse sx={{ flex: 1 }} in={isExpanded}>
+        <td colSpan={columns.length}>
+          <Collapse
+            sx={{
+              flex: 1,
+              '& .MuiCollapse-wrapperInner': {
+                display: 'flex',
+              },
+            }}
+            in={isExpanded}
+          >
             {ExpandContent ? <ExpandContent rowData={rowData} /> : null}
           </Collapse>
         </td>

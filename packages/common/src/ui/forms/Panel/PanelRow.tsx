@@ -1,10 +1,14 @@
 import React from 'react';
-import { Grid } from '@mui/material';
+import { Grid, GridProps } from '@mui/material';
 
-export const PanelRow: React.FC = props => (
+export const PanelRow: React.FC<GridProps> = props => (
   <Grid
     container
-    sx={{ alignItems: 'center', justifyContent: 'space-between' }}
     {...props}
+    sx={{
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      ...props.sx,
+    }}
   />
 );

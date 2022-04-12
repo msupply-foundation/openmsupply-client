@@ -1,26 +1,39 @@
 import React, { FC } from 'react';
 import {
   AppBarButtonsPortal,
-  BookIcon,
   ButtonWithIcon,
   PlusCircleIcon,
   Grid,
   useDetailPanel,
   useTranslation,
+  ReportCategory,
+  LoadingButton,
+  PrinterIcon,
 } from '@openmsupply-client/common';
-import { ExternalURL } from '@openmsupply-client/config';
+import { useIsStocktakeDisabled, useStocktake } from '../api';
+import {
+  ReportRowFragment,
+  ReportSelector,
+  usePrintReport,
+} from '@openmsupply-client/system';
 
 interface AppBarButtonProps {
-  isDisabled: boolean;
   onAddItem: (newState: boolean) => void;
 }
 
 export const AppBarButtonsComponent: FC<AppBarButtonProps> = ({
-  isDisabled,
   onAddItem,
 }) => {
+  const isDisabled = useIsStocktakeDisabled();
   const { OpenButton } = useDetailPanel();
   const t = useTranslation('common');
+  const { data } = useStocktake();
+  const { print, isPrinting } = usePrintReport();
+
+  const printReport = (report: ReportRowFragment) => {
+    if (!data) return;
+    print({ reportId: report.id, dataId: data?.id || '' });
+  };
 
   return (
     <AppBarButtonsPortal>
@@ -31,11 +44,18 @@ export const AppBarButtonsComponent: FC<AppBarButtonProps> = ({
           Icon={<PlusCircleIcon />}
           onClick={() => onAddItem(true)}
         />
-        <ButtonWithIcon
-          Icon={<BookIcon />}
-          label={t('button.docs')}
-          onClick={() => (location.href = ExternalURL.PublicDocs)}
-        />
+        <ReportSelector
+          category={ReportCategory.Stocktake}
+          onClick={printReport}
+        >
+          <LoadingButton
+            variant="outlined"
+            startIcon={<PrinterIcon />}
+            isLoading={isPrinting}
+          >
+            {t('button.print')}
+          </LoadingButton>
+        </ReportSelector>
         {OpenButton}
       </Grid>
     </AppBarButtonsPortal>

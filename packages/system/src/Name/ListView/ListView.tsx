@@ -1,36 +1,33 @@
-import React, { FC } from 'react';
+import React, { FC, useState } from 'react';
 import {
-  useNavigate,
   TableProvider,
   DataTable,
-  useListData,
-  Name,
   useColumns,
   createTableStore,
-  useOmSupplyApi,
+  useDialog,
+  DialogButton,
+  Fade,
 } from '@openmsupply-client/common';
-import { getNameListViewApi } from './api';
+import { TransitionProps } from '@mui/material/transitions';
+import { DetailModal } from '../DetailModal';
+import { useNames, NameRowFragment } from '../api';
 
 export const NameListView: FC<{ type: 'customer' | 'supplier' }> = ({
   type,
 }) => {
-  const navigate = useNavigate();
-  const { api } = useOmSupplyApi();
+  const [selectedId, setSelectedId] = useState<string>('');
   const {
-    totalCount,
     data,
+    isError,
     isLoading,
     onChangePage,
     pagination,
     sortBy,
     onChangeSortBy,
-  } = useListData(
-    { initialSortBy: { key: 'name' } },
-    ['names', 'list'],
-    getNameListViewApi(api, type)
-  );
+  } = useNames(type);
+  const { Modal, showDialog, hideDialog } = useDialog();
 
-  const columns = useColumns<Name>(
+  const columns = useColumns<NameRowFragment>(
     ['name', 'code'],
     {
       sortBy,
@@ -39,18 +36,38 @@ export const NameListView: FC<{ type: 'customer' | 'supplier' }> = ({
     [sortBy]
   );
 
+  const Transition = React.forwardRef(
+    (
+      props: TransitionProps & {
+        children: React.ReactElement;
+      },
+      ref: React.Ref<unknown>
+    ) => <Fade ref={ref} {...props} timeout={800}></Fade>
+  );
+
   return (
     <TableProvider createStore={createTableStore}>
       <DataTable
-        pagination={{ ...pagination, total: totalCount }}
+        pagination={{ ...pagination, total: data?.totalCount }}
         onChangePage={onChangePage}
         columns={columns}
-        data={data ?? []}
+        data={data?.nodes}
         isLoading={isLoading}
+        isError={isError}
         onRowClick={row => {
-          navigate(row.id);
+          setSelectedId(row.id);
+          showDialog();
         }}
       />
+      <Modal
+        title=""
+        sx={{ maxWidth: '90%' }}
+        okButton={<DialogButton variant="ok" onClick={hideDialog} />}
+        slideAnimation={false}
+        Transition={Transition}
+      >
+        <DetailModal nameId={selectedId} />
+      </Modal>
     </TableProvider>
   );
 };

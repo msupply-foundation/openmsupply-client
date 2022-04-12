@@ -1,19 +1,21 @@
 import React, { FC } from 'react';
 import {
-  Item,
   ModalRow,
   ModalLabel,
   Grid,
   useTranslation,
   BasicTextInput,
 } from '@openmsupply-client/common';
-import { ItemSearchInput } from '@openmsupply-client/system';
-import { useInboundItems } from '../../api';
+import {
+  ItemRowFragment,
+  StockItemSearchInput,
+} from '@openmsupply-client/system';
+import { useInboundItems } from '../../../api';
 
 interface InboundLineEditProps {
-  item: Item | null;
+  item: ItemRowFragment | null;
   disabled: boolean;
-  onChangeItem: (item: Item) => void;
+  onChangeItem: (item: ItemRowFragment) => void;
 }
 
 export const InboundLineEditForm: FC<InboundLineEditProps> = ({
@@ -22,47 +24,35 @@ export const InboundLineEditForm: FC<InboundLineEditProps> = ({
   onChangeItem,
 }) => {
   const t = useTranslation('common');
-  const { data } = useInboundItems();
+  const { data: items } = useInboundItems();
 
   return (
     <>
       <ModalRow>
-        <ModalLabel label={t('label.item')} />
+        <ModalLabel label={t('label.item')} justifyContent="flex-end" />
         <Grid item flex={1}>
-          <ItemSearchInput
+          <StockItemSearchInput
+            autoFocus={!item}
             disabled={disabled}
-            currentItem={item}
-            onChange={(newItem: Item | null) =>
-              newItem && onChangeItem(newItem)
+            currentItemId={item?.id}
+            onChange={newItem => newItem && onChangeItem(newItem)}
+            extraFilter={
+              disabled
+                ? undefined
+                : item => !items?.some(({ id }) => id === item.id)
             }
-            extraFilter={item => {
-              const itemAlreadyInShipment = data?.some(
-                ({ id }) => id === item.id
-              );
-              return !itemAlreadyInShipment;
-            }}
           />
         </Grid>
       </ModalRow>
 
       {item && (
-        <ModalRow>
-          <Grid style={{ display: 'flex', marginTop: 10 }} flex={1}>
-            <ModalLabel label={t('label.code')} />
-            <BasicTextInput disabled sx={{ width: 150 }} value={item.code} />
-          </Grid>
-          <Grid
-            style={{ display: 'flex', marginTop: 10 }}
-            justifyContent="flex-end"
-            flex={1}
-          >
-            <ModalLabel label={t('label.unit')} justifyContent="flex-end" />
-            <BasicTextInput
-              disabled
-              sx={{ width: 150 }}
-              value={item.unitName}
-            />
-          </Grid>
+        <ModalRow margin={3}>
+          <ModalLabel label={t('label.unit')} justifyContent="flex-end" />
+          <BasicTextInput
+            disabled
+            sx={{ width: 150 }}
+            value={item.unitName ?? ''}
+          />
         </ModalRow>
       )}
     </>

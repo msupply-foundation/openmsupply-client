@@ -2,6 +2,7 @@ import React, { ChangeEvent, useState } from 'react';
 import { ComponentStory, ComponentMeta } from '@storybook/react';
 
 import { SvgIconProps } from '.';
+import { AlertIcon } from './Alert';
 import { ArrowLeftIcon } from './ArrowLeft';
 import { ArrowRightIcon } from './ArrowRight';
 import { BarChartIcon } from './BarChart';
@@ -22,11 +23,12 @@ import { DashboardIcon } from './Dashboard';
 import { DeleteIcon } from './Delete';
 import { DownloadIcon } from './Download';
 import { EditIcon } from './Edit';
+import { FilterIcon } from './Filter';
 import { HomeIcon } from './Home';
 import { InfoIcon } from './Info';
 import { InvoiceIcon } from './Invoice';
 import { MedicineIcon } from './MedicineIcon';
-import { MSupplyGuy } from './MSupplyGuy';
+import { MSupplyGuy, AnimatedMSupplyGuy } from './MSupplyGuy';
 import { MenuDotsIcon } from './MenuDots';
 import { MessagesIcon } from './Messages';
 import { MessageSquareIcon } from './MessageSquare';
@@ -49,6 +51,7 @@ import { TranslateIcon } from './Translate';
 import { TruckIcon } from './Truck';
 import { UserIcon } from './User';
 import { XCircleIcon } from './XCircle';
+import { ZapIcon } from './Zap';
 import { Box, Grid, Paper, styled, TextField, Typography } from '@mui/material';
 
 export default {
@@ -72,6 +75,7 @@ type Icon = {
 
 const Template: ComponentStory<React.FC<SvgIconProps>> = args => {
   const icons: Icon[] = [
+    { icon: <AlertIcon {...args} />, name: 'Alert' },
     { icon: <ArrowLeftIcon {...args} />, name: 'ArrowLeft' },
     { icon: <ArrowRightIcon {...args} />, name: 'ArrowRight' },
     { icon: <BarChartIcon {...args} />, name: 'BarChart' },
@@ -95,10 +99,15 @@ const Template: ComponentStory<React.FC<SvgIconProps>> = args => {
     { icon: <DeleteIcon {...args} />, name: 'Delete' },
     { icon: <DownloadIcon {...args} />, name: 'Download' },
     { icon: <EditIcon {...args} />, name: 'Edit' },
+    { icon: <FilterIcon {...args} />, name: 'Filter' },
     { icon: <HomeIcon {...args} />, name: 'Home' },
     { icon: <InfoIcon {...args} />, name: 'Info' },
     { icon: <InvoiceIcon {...args} />, name: 'Invoice' },
     { icon: <MSupplyGuy {...args} size="medium" />, name: 'MSupplyGuy' },
+    {
+      icon: <AnimatedMSupplyGuy {...args} size="medium" />,
+      name: 'AnimatedMSupplyGuy',
+    },
     { icon: <MedicineIcon {...args} />, name: 'MedicineIcon' },
     { icon: <MenuDotsIcon {...args} />, name: 'MenuDots' },
     { icon: <MessagesIcon {...args} />, name: 'Messages' },
@@ -122,6 +131,7 @@ const Template: ComponentStory<React.FC<SvgIconProps>> = args => {
     { icon: <TruckIcon {...args} />, name: 'Truck' },
     { icon: <UserIcon {...args} />, name: 'User' },
     { icon: <XCircleIcon {...args} />, name: 'XCircle' },
+    { icon: <ZapIcon {...args} />, name: 'Zap' },
   ];
   const [filteredIcons, setFilteredIcons] = useState(icons);
   const filterIcons = (event: ChangeEvent<HTMLInputElement>) => {

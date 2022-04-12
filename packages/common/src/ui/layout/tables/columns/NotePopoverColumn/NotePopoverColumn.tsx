@@ -1,10 +1,10 @@
 import React, { FC } from 'react';
-import { DomainObject } from '@common/types';
+import { RecordWithId } from '@common/types';
 import { ColumnAlign, ColumnDefinition } from '../types';
 import { MessageSquareIcon } from '@common/icons';
-import { PaperPopover, PaperPopoverSection } from '@common/components';
+import { PaperHoverPopover, PaperPopoverSection } from '@common/components';
 import { useTranslation } from '@common/intl';
-import { isProduction } from '@common/utils';
+import { EnvUtils } from '@common/utils';
 
 interface NoteObject {
   header: string;
@@ -29,7 +29,7 @@ const hasRequiredFields = (
   (variableToCheck as NoteObject).header !== undefined &&
   (variableToCheck as NoteObject).body !== undefined;
 
-export const getNotePopoverColumn = <T extends DomainObject>(
+export const getNotePopoverColumn = <T extends RecordWithId>(
   label?: string
 ): ColumnDefinition<T> => ({
   key: 'note',
@@ -40,7 +40,7 @@ export const getNotePopoverColumn = <T extends DomainObject>(
     if (hasRequiredFields(rowData)) {
       return rowData;
     } else {
-      if (!isProduction()) {
+      if (!EnvUtils.isProduction()) {
         // TODO: Bugsnag during prod
         throw new Error(`
         The default accessor for the note popover column has been called with row data
@@ -71,7 +71,7 @@ export const getNotePopoverColumn = <T extends DomainObject>(
     }
 
     return value ? (
-      <PaperPopover
+      <PaperHoverPopover
         width={400}
         Content={
           <PaperPopoverSection label={label ?? t('label.notes')}>
@@ -82,7 +82,7 @@ export const getNotePopoverColumn = <T extends DomainObject>(
         }
       >
         <MessageSquareIcon sx={{ fontSize: 16 }} color="primary" />
-      </PaperPopover>
+      </PaperHoverPopover>
     ) : null;
   },
 });

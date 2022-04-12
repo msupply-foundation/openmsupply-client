@@ -9,75 +9,26 @@ import {
   DropdownMenuItem,
   DeleteIcon,
   useTranslation,
-  useNotification,
-  useTableStore,
 } from '@openmsupply-client/common';
-import { NameSearchInput } from '@openmsupply-client/system';
+import { SupplierSearchInput } from '@openmsupply-client/system';
 import {
-  useDeleteInboundLine,
+  useDeleteSelectedLines,
   useInboundFields,
   useInboundItems,
-  useInboundLines,
-} from './api';
-import { InboundShipmentItem, Invoice, InvoiceLine } from '../../types';
-import { isInboundEditable } from '../../utils';
+  useIsInboundDisabled,
+} from '../api';
 
-interface ToolbarProps {
-  draft: Invoice;
-}
-
-export const Toolbar: FC<ToolbarProps> = ({ draft }) => {
+export const Toolbar: FC = () => {
+  const isDisabled = useIsInboundDisabled();
   const { data } = useInboundItems();
-  const lines = useInboundLines();
 
-  const { mutate } = useDeleteInboundLine();
+  const { onDelete } = useDeleteSelectedLines();
   const { otherParty, theirReference, update } = useInboundFields([
     'otherParty',
     'theirReference',
   ]);
 
-  const t = useTranslation(['replenishment', 'common']);
-  const { success, info } = useNotification();
-
-  const { selectedRows } = useTableStore(state => {
-    const { isGrouped } = state;
-
-    if (isGrouped) {
-      return {
-        selectedRows: (
-          Object.keys(state.rowState)
-            .filter(id => state.rowState[id]?.isSelected)
-            .map(selectedId => data?.find(({ id }) => selectedId === id))
-            .filter(Boolean) as InboundShipmentItem[]
-        )
-          .map(({ lines }) => lines)
-          .flat()
-          .map(({ id }) => id),
-      };
-    } else {
-      return {
-        selectedRows: (
-          Object.keys(state.rowState)
-            .filter(id => state.rowState[id]?.isSelected)
-            .map(selectedId => lines.find(({ id }) => selectedId === id))
-            .filter(Boolean) as InvoiceLine[]
-        ).map(({ id }) => id),
-      };
-    }
-  });
-
-  const deleteAction = async () => {
-    if (selectedRows && selectedRows?.length > 0) {
-      const number = selectedRows?.length;
-      const onSuccess = success(t('message.deleted-lines', { number }));
-      mutate(selectedRows, {
-        onSuccess,
-      });
-    } else {
-      const infoSnack = info(t('label.select-rows-to-delete-them'));
-      infoSnack();
-    }
-  };
+  const t = useTranslation('replenishment');
 
   if (!data) return null;
 
@@ -96,9 +47,8 @@ export const Toolbar: FC<ToolbarProps> = ({ draft }) => {
               <InputWithLabelRow
                 label={t('label.supplier-name')}
                 Input={
-                  <NameSearchInput
-                    type="supplier"
-                    disabled={!isInboundEditable(draft)}
+                  <SupplierSearchInput
+                    disabled={isDisabled}
                     value={otherParty}
                     onChange={name => {
                       update({ otherParty: name });
@@ -111,7 +61,7 @@ export const Toolbar: FC<ToolbarProps> = ({ draft }) => {
               label={t('label.supplier-ref')}
               Input={
                 <BufferedTextInput
-                  disabled={!isInboundEditable(draft)}
+                  disabled={isDisabled}
                   size="small"
                   sx={{ width: 250 }}
                   value={theirReference ?? ''}
@@ -123,11 +73,8 @@ export const Toolbar: FC<ToolbarProps> = ({ draft }) => {
             />
           </Box>
         </Grid>
-        <DropdownMenu
-          disabled={!isInboundEditable(draft)}
-          label={t('label.select')}
-        >
-          <DropdownMenuItem IconComponent={DeleteIcon} onClick={deleteAction}>
+        <DropdownMenu label={t('label.actions')}>
+          <DropdownMenuItem IconComponent={DeleteIcon} onClick={onDelete}>
             {t('button.delete-lines', { ns: 'distribution' })}
           </DropdownMenuItem>
         </DropdownMenu>

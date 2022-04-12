@@ -6,37 +6,38 @@ import {
   AutocompleteRenderInputParams,
   createFilterOptions,
   CreateFilterOptionsConfig,
+  FilterOptionsState,
 } from '@mui/material';
 import { AutocompleteOnChange, AutocompleteOptionRenderer } from './types';
 import { BasicTextInput } from '../TextInput';
 import { defaultOptionMapper, getDefaultOptionRenderer } from './utils';
 
-export type BaseAutocompleteListProps<T> = {
+export type AutocompleteListProps<T> = {
   options: T[];
-
   filterOptionConfig?: CreateFilterOptionsConfig<T>;
+  filterOptions?: (options: T[], state: FilterOptionsState<T>) => T[];
   loading?: boolean;
   loadingText?: React.ReactNode;
   noOptionsText?: React.ReactNode;
-  onChange?: AutocompleteOnChange<T>;
+  onChange?: AutocompleteOnChange<T | T[]>;
   width?: number;
   height?: number;
-
+  renderOption?: AutocompleteOptionRenderer<T>;
+  optionKey?: keyof T;
   renderInput?: (params: AutocompleteRenderInputParams) => React.ReactNode;
+  disableCloseOnSelect?: boolean;
+  multiple?: boolean;
+  getOptionLabel?: (option: T) => string;
+  limitTags?: number;
+  inputValue?: string;
+  clearText?: string;
+  value?: T extends unknown[] ? T : T[];
+  disableClearable?: boolean;
 };
 
-export type AutocompleteListPropsWithOptionsRenderer<T> =
-  | {
-      renderOption: AutocompleteOptionRenderer<T>;
-      optionKey?: never;
-    }
-  | { renderOption?: never; optionKey: keyof T };
-
-export type AutocompleteListProps<T> = BaseAutocompleteListProps<T> &
-  AutocompleteListPropsWithOptionsRenderer<T>;
-
-export const AutocompleteList = <T extends unknown>({
+export const AutocompleteList = <T,>({
   options,
+  filterOptions,
   filterOptionConfig,
   loading,
   loadingText,
@@ -47,9 +48,16 @@ export const AutocompleteList = <T extends unknown>({
   renderInput,
   optionKey,
   renderOption,
+  disableCloseOnSelect,
+  multiple,
+  getOptionLabel,
+  limitTags,
+  inputValue,
+  clearText,
+  value,
+  disableClearable,
 }: AutocompleteListProps<T>): JSX.Element => {
-  const filterOptions = createFilterOptions(filterOptionConfig);
-
+  const createdFilterOptions = createFilterOptions(filterOptionConfig);
   const optionRenderer = optionKey
     ? getDefaultOptionRenderer<T>(optionKey)
     : renderOption;
@@ -64,6 +72,7 @@ export const AutocompleteList = <T extends unknown>({
 
   return (
     <MuiAutocomplete
+      disableClearable={disableClearable}
       autoSelect={false}
       loading={loading}
       loadingText={loadingText}
@@ -81,7 +90,7 @@ export const AutocompleteList = <T extends unknown>({
       renderInput={
         renderInput || (props => <BasicTextInput {...props} autoFocus />)
       }
-      filterOptions={filterOptions}
+      filterOptions={filterOptions ?? createdFilterOptions}
       open
       forcePopupIcon={false}
       options={mappedOptions}
@@ -102,6 +111,13 @@ export const AutocompleteList = <T extends unknown>({
           {props.children}
         </Paper>
       )}
+      disableCloseOnSelect={disableCloseOnSelect}
+      multiple={multiple}
+      getOptionLabel={getOptionLabel}
+      limitTags={limitTags}
+      inputValue={inputValue}
+      clearText={clearText}
+      value={value}
     />
   );
 };

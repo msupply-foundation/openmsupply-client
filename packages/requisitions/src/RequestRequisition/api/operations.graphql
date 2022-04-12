@@ -1,0 +1,442 @@
+fragment ItemWithStats on ItemNode {
+  id
+  name
+  code
+  unitName
+  stats(storeId: $storeId) {
+    averageMonthlyConsumption
+    availableStockOnHand
+    availableMonthsOfStockOnHand
+  }
+}
+
+fragment RequestRow on RequisitionNode {
+  colour
+  comment
+  createdDatetime
+  finalisedDatetime
+  id
+  otherPartyName
+  requisitionNumber
+  sentDatetime
+  status
+  theirReference
+  type
+  otherPartyId
+}
+
+fragment RequestLine on RequisitionLineNode {
+  id
+  itemId
+  requestedQuantity
+  suggestedQuantity
+  comment
+
+  itemStats {
+    __typename
+    availableStockOnHand
+    availableMonthsOfStockOnHand
+    averageMonthlyConsumption
+  }
+  item {
+    ...ItemWithStats
+  }
+}
+
+fragment Request on RequisitionNode {
+  __typename
+  id
+  type
+  status
+  createdDatetime
+  sentDatetime
+  finalisedDatetime
+  requisitionNumber
+  colour
+  theirReference
+  comment
+  otherPartyName
+  otherPartyId
+  maxMonthsOfStock
+  minMonthsOfStock
+
+  user {
+    __typename
+    username
+    email
+  }
+
+  lines {
+    __typename
+    totalCount
+    nodes {
+      ...RequestLine
+    }
+  }
+
+  shipments {
+    __typename
+    totalCount
+    nodes {
+      __typename
+      id
+      invoiceNumber
+      createdDatetime
+
+      user {
+        __typename
+        username
+      }
+    }
+  }
+
+  otherParty(storeId: $storeId) {
+    id
+    code
+    isCustomer
+    isSupplier
+    name
+    store {
+      id
+      code
+    }
+  }
+}
+
+query requestByNumber($storeId: String!, $requisitionNumber: Int!) {
+  requisitionByNumber(
+    requisitionNumber: $requisitionNumber
+    type: REQUEST
+    storeId: $storeId
+  ) {
+    __typename
+    ... on RequisitionNode {
+      ...Request
+      otherParty(storeId: $storeId) {
+        __typename
+        ... on NameNode {
+          id
+          name
+          code
+          isCustomer
+          isSupplier
+        }
+      }
+    }
+    ... on RecordNotFound {
+      __typename
+      description
+    }
+  }
+}
+
+query requisitionLineChart($storeId: String!, $requisitionLineId: String!) {
+  requisitionLineChart(
+    requestRequisitionLineId: $requisitionLineId
+    storeId: $storeId
+  ) {
+    ... on ItemChartNode {
+      __typename
+      calculationDate
+      consumptionHistory {
+        totalCount
+        nodes {
+          averageMonthlyConsumption
+          consumption
+          date
+          isCurrent
+          isHistoric
+        }
+      }
+      stockEvolution {
+        nodes {
+          date
+          isHistoric
+          isProjected
+          minimumStockOnHand
+          maximumStockOnHand
+          stockOnHand
+        }
+        totalCount
+      }
+      suggestedQuantityCalculation {
+        suggestedQuantity
+        stockOnHand
+        minimumStockOnHand
+        maximumStockOnHand
+        averageMonthlyConsumption
+      }
+    }
+    ... on RequisitionLineChartError {
+      __typename
+      error {
+        ... on RecordNotFound {
+          __typename
+          description
+        }
+        description
+      }
+    }
+  }
+}
+
+query requests(
+  $storeId: String!
+  $filter: RequisitionFilterInput
+  $page: PaginationInput
+  $sort: [RequisitionSortInput!]
+) {
+  requisitions(storeId: $storeId, filter: $filter, page: $page, sort: $sort) {
+    ... on RequisitionConnector {
+      totalCount
+      nodes {
+        ...RequestRow
+      }
+    }
+  }
+}
+
+mutation insertRequestLine(
+  $storeId: String!
+  $input: InsertRequestRequisitionLineInput!
+) {
+  insertRequestRequisitionLine(input: $input, storeId: $storeId) {
+    ... on RequisitionLineNode {
+      __typename
+      id
+    }
+    ... on InsertRequestRequisitionLineError {
+      __typename
+      error {
+        description
+        ... on CannotEditRequisition {
+          __typename
+          description
+        }
+        ... on ForeignKeyError {
+          __typename
+          description
+          key
+        }
+        ... on RequisitionLineWithItemIdExists {
+          __typename
+          description
+        }
+      }
+    }
+  }
+}
+
+mutation updateRequestLine(
+  $storeId: String!
+  $input: UpdateRequestRequisitionLineInput!
+) {
+  updateRequestRequisitionLine(input: $input, storeId: $storeId) {
+    ... on RequisitionLineNode {
+      __typename
+      id
+    }
+    ... on UpdateRequestRequisitionLineError {
+      __typename
+      error {
+        description
+        ... on CannotEditRequisition {
+          __typename
+          description
+        }
+        ... on ForeignKeyError {
+          __typename
+          description
+          key
+        }
+        ... on RecordNotFound {
+          __typename
+          description
+        }
+      }
+    }
+  }
+}
+
+mutation addFromMasterList(
+  $storeId: String!
+  $requestId: String!
+  $masterListId: String!
+) {
+  addFromMasterList(
+    input: { requestRequisitionId: $requestId, masterListId: $masterListId }
+    storeId: $storeId
+  ) {
+    ... on RequisitionLineConnector {
+      __typename
+      totalCount
+    }
+    ... on AddFromMasterListError {
+      __typename
+      error {
+        description
+        ... on RecordNotFound {
+          __typename
+          description
+        }
+        ... on CannotEditRequisition {
+          __typename
+          description
+        }
+        ... on MasterListNotFoundForThisStore {
+          __typename
+          description
+        }
+      }
+    }
+  }
+}
+
+mutation deleteRequestLines(
+  $ids: [DeleteRequestRequisitionLineInput!]
+  $storeId: String!
+) {
+  batchRequestRequisition(
+    input: { deleteRequestRequisitionLines: $ids }
+    storeId: $storeId
+  ) {
+    deleteRequestRequisitionLines {
+      id
+      response {
+        ... on DeleteRequestRequisitionLineError {
+          __typename
+          error {
+            description
+            ... on RecordNotFound {
+              __typename
+              description
+            }
+            ... on CannotEditRequisition {
+              __typename
+              description
+            }
+          }
+        }
+        ... on DeleteResponse {
+          id
+        }
+      }
+    }
+  }
+}
+
+mutation useSuggestedQuantity($requestId: String!, $storeId: String!) {
+  useSuggestedQuantity(
+    input: { requestRequisitionId: $requestId }
+    storeId: $storeId
+  ) {
+    ... on UseSuggestedQuantityError {
+      __typename
+      error {
+        description
+        ... on RecordNotFound {
+          __typename
+          description
+        }
+        ... on CannotEditRequisition {
+          __typename
+          description
+        }
+      }
+    }
+    ... on RequisitionLineConnector {
+      nodes {
+        id
+      }
+      totalCount
+    }
+  }
+}
+
+mutation insertRequest(
+  $storeId: String!
+  $input: InsertRequestRequisitionInput!
+) {
+  insertRequestRequisition(input: $input, storeId: $storeId) {
+    ... on RequisitionNode {
+      __typename
+      id
+      requisitionNumber
+    }
+    ... on InsertRequestRequisitionError {
+      __typename
+      error {
+        description
+        ... on OtherPartyNotASupplier {
+          __typename
+          description
+        }
+      }
+    }
+  }
+}
+
+mutation updateRequest(
+  $storeId: String!
+  $input: UpdateRequestRequisitionInput!
+) {
+  updateRequestRequisition(input: $input, storeId: $storeId) {
+    ... on RequisitionNode {
+      __typename
+      id
+      requisitionNumber
+    }
+    ... on UpdateRequestRequisitionError {
+      __typename
+      error {
+        description
+        ... on RecordNotFound {
+          __typename
+          description
+        }
+        ... on CannotEditRequisition {
+          __typename
+          description
+        }
+        ... on OtherPartyNotASupplier {
+          __typename
+          description
+        }
+      }
+    }
+  }
+}
+
+mutation deleteRequest(
+  $storeId: String!
+  $input: BatchRequestRequisitionInput!
+) {
+  batchRequestRequisition(storeId: $storeId, input: $input) {
+    deleteRequestRequisitions {
+      id
+      response {
+        ... on DeleteRequestRequisitionError {
+          __typename
+          error {
+            description
+            ... on RecordNotFound {
+              __typename
+              description
+            }
+            ... on CannotDeleteRequisitionWithLines {
+              __typename
+              description
+            }
+            ... on CannotEditRequisition {
+              __typename
+              description
+            }
+          }
+        }
+        ... on DeleteResponse {
+          id
+        }
+      }
+    }
+  }
+}

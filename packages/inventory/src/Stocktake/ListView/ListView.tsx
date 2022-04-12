@@ -1,54 +1,49 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect } from 'react';
 import {
   useNavigate,
   StocktakeNodeStatus,
   DataTable,
   useColumns,
-  useListData,
   TableProvider,
   createTableStore,
-  useNotification,
-  generateUUID,
-  useOmSupplyApi,
   useTranslation,
+  useTableStore,
 } from '@openmsupply-client/common';
 import { Toolbar } from './Toolbar';
 import { AppBarButtons } from './AppBarButtons';
-import { getStocktakeListViewApi } from './api';
-import { StocktakeRow } from '../../types';
-import { getStocktakeTranslator } from '../../utils';
+import { getStocktakeTranslator, isStocktakeDisabled } from '../../utils';
+import { StocktakeRowFragment } from '../api/operations.generated';
+import { useStocktakes } from '../api';
+
+const useDisableStocktakeRows = (rows?: StocktakeRowFragment[]) => {
+  const { setDisabledRows } = useTableStore();
+  useEffect(() => {
+    const disabledRows = rows?.filter(isStocktakeDisabled).map(({ id }) => id);
+    if (disabledRows) setDisabledRows(disabledRows);
+  }, [rows]);
+};
 
 export const StocktakeListView: FC = () => {
   const navigate = useNavigate();
-  const { error } = useNotification();
-  const { api } = useOmSupplyApi();
   const t = useTranslation(['common', 'inventory']);
 
   const {
-    totalCount,
     data,
+    isError,
     isLoading,
-    onDelete,
     sortBy,
     onChangeSortBy,
-    onCreate,
     onChangePage,
     pagination,
     filter,
-    invalidate,
-  } = useListData(
-    {
-      initialSortBy: { key: 'comment' },
-    },
-    'invoice',
-    getStocktakeListViewApi(api)
-  );
+  } = useStocktakes();
+  useDisableStocktakeRows(data?.nodes);
 
   const statusTranslator = getStocktakeTranslator(t);
 
-  const columns = useColumns<StocktakeRow>(
+  const columns = useColumns<StocktakeRowFragment>(
     [
-      'stocktakeNumber',
+      ['stocktakeNumber', { maxWidth: 50 }],
       [
         'status',
         {
@@ -57,40 +52,27 @@ export const StocktakeListView: FC = () => {
       ],
       'description',
       'comment',
-      'stocktakeDatetime',
+      'stocktakeDate',
       'selection',
     ],
     { onChangeSortBy, sortBy },
     [sortBy]
   );
 
-  const onNewStocktake = async () => {
-    try {
-      const id = generateUUID();
-      const result = await onCreate({ id });
-      invalidate();
-      navigate(result);
-    } catch (e) {
-      const errorSnack = error(
-        'Failed to create stocktake! ' + (e as Error).message
-      );
-      errorSnack();
-    }
-  };
-
   return (
     <>
-      <Toolbar onDelete={onDelete} data={data} filter={filter} />
-      <AppBarButtons onCreate={onNewStocktake} />
+      <Toolbar filter={filter} />
+      <AppBarButtons />
 
       <DataTable
-        pagination={{ ...pagination, total: totalCount }}
+        pagination={{ ...pagination, total: data?.totalCount }}
         onChangePage={onChangePage}
         columns={columns}
-        data={data ?? []}
+        data={data?.nodes ?? []}
+        isError={isError}
         isLoading={isLoading}
         onRowClick={row => {
-          navigate(row.id);
+          navigate(String(row.stocktakeNumber));
         }}
       />
     </>

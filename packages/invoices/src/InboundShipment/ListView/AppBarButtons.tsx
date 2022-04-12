@@ -1,24 +1,23 @@
 import React, { FC } from 'react';
 import {
+  FnUtils,
   DownloadIcon,
   PlusCircleIcon,
-  PrinterIcon,
   useNotification,
   AppBarButtonsPortal,
-  BookIcon,
   ButtonWithIcon,
   Grid,
   useTranslation,
+  useToggle,
 } from '@openmsupply-client/common';
-import { ExternalURL } from '@openmsupply-client/config';
+import { SupplierSearchModal } from '@openmsupply-client/system';
+import { useInsertInbound } from '../api';
 
-interface AppBarButtonsProps {
-  onCreate: (toggle: boolean) => void;
-}
-
-export const AppBarButtons: FC<AppBarButtonsProps> = ({ onCreate }) => {
-  const { info, success } = useNotification();
-  const t = useTranslation(['distribution', 'common']);
+export const AppBarButtons: FC = () => {
+  const modalController = useToggle();
+  const { mutate: onCreate } = useInsertInbound();
+  const { success } = useNotification();
+  const t = useTranslation('replenishment');
 
   return (
     <AppBarButtonsPortal>
@@ -26,24 +25,22 @@ export const AppBarButtons: FC<AppBarButtonsProps> = ({ onCreate }) => {
         <ButtonWithIcon
           Icon={<PlusCircleIcon />}
           label={t('button.new-shipment')}
-          onClick={() => onCreate(true)}
+          onClick={modalController.toggleOn}
         />
         <ButtonWithIcon
           Icon={<DownloadIcon />}
           label={t('button.export', { ns: 'common' })}
           onClick={success('Downloaded successfully')}
         />
-        <ButtonWithIcon
-          Icon={<PrinterIcon />}
-          label={t('button.print', { ns: 'common' })}
-          onClick={info('No printer detected')}
-        />
-        <ButtonWithIcon
-          Icon={<BookIcon />}
-          label={t('button.docs', { ns: 'common' })}
-          onClick={() => (location.href = ExternalURL.PublicDocs)}
-        />
       </Grid>
+      <SupplierSearchModal
+        open={modalController.isOn}
+        onClose={modalController.toggleOff}
+        onChange={async name => {
+          modalController.toggleOff();
+          onCreate({ id: FnUtils.generateUUID(), otherPartyId: name?.id });
+        }}
+      />
     </AppBarButtonsPortal>
   );
 };

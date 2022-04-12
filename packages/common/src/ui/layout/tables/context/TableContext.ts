@@ -1,14 +1,17 @@
-import { useLocalStorage, GroupByItem } from './../../../../localStorage';
-import { useCallback, useEffect } from 'react';
 import create, { UseStore } from 'zustand';
 import createContext from 'zustand/context';
+import { AppSxProp } from '../../../../styles';
 
 export interface RowState {
   isSelected: boolean;
   isExpanded: boolean;
   isDisabled: boolean;
+  isFocused: boolean;
+  index: number;
+  style?: AppSxProp;
 }
 
+type FocusDirection = 'up' | 'down';
 export interface TableStore {
   rowState: Record<string, RowState>;
   numberSelected: number;
@@ -19,13 +22,30 @@ export interface TableStore {
   toggleAllExpanded: () => void;
   toggleSelected: (id: string) => void;
   toggleAll: () => void;
-  setActiveRows: (id: string[]) => void;
+  setRows: (id: string[]) => void;
   setDisabledRows: (id: string[]) => void;
   setIsGrouped: (grouped: boolean) => void;
+  setFocus: (dir: FocusDirection) => void;
+  setRowStyle: (id: string, style: AppSxProp) => void;
+  setRowStyles: (ids: string[], style: AppSxProp) => void;
 }
 
 export const { Provider: TableProvider, useStore: useTableStore } =
   createContext<TableStore>();
+
+const getRowState = (
+  state: TableStore,
+  id: string,
+  updates: Partial<RowState>
+): RowState => ({
+  isSelected: state.rowState[id]?.isSelected ?? false,
+  isExpanded: state.rowState[id]?.isExpanded ?? false,
+  isDisabled: state.rowState[id]?.isDisabled ?? false,
+  isFocused: state.rowState[id]?.isFocused ?? false,
+  index: state.rowState[id]?.index ?? 0,
+  style: state.rowState[id]?.style ?? {},
+  ...updates,
+});
 
 export const createTableStore = (): UseStore<TableStore> =>
   create<TableStore>(set => ({
@@ -52,11 +72,39 @@ export const createTableStore = (): UseStore<TableStore> =>
                 isSelected,
                 isExpanded: state.rowState[id]?.isExpanded ?? false,
                 isDisabled: state.rowState[id]?.isDisabled ?? false,
+                isFocused: state.rowState[id]?.isFocused ?? false,
+                index: state.rowState[id]?.index ?? 0,
               },
             }),
             state.rowState
           ),
         };
+      });
+    },
+    setRowStyle: (id, style) => {
+      set(state => ({
+        ...state,
+        rowState: {
+          ...state.rowState,
+          [id]: getRowState(state, id, { style }),
+        },
+      }));
+    },
+    setRowStyles: (ids: string[], style: AppSxProp) => {
+      set(state => {
+        const { rowState } = state;
+
+        // Reset all styles within the state.
+        Object.keys(rowState).forEach(id => {
+          rowState[id] = getRowState(state, id, { style: {} });
+        });
+
+        // Set new styles for the ids passed.
+        ids.forEach(id => {
+          rowState[id] = getRowState(state, id, { style });
+        });
+
+        return { ...state, rowState: { ...rowState } };
       });
     },
 
@@ -66,44 +114,30 @@ export const createTableStore = (): UseStore<TableStore> =>
 
         // Reset the disabled row states.
         Object.keys(rowState).forEach(id => {
-          rowState[id] = {
-            isSelected: rowState[id]?.isSelected ?? false,
-            isExpanded: rowState[id]?.isExpanded ?? false,
-            isDisabled: false,
-          };
+          rowState[id] = getRowState(state, id, { isDisabled: false });
         });
 
         // then set the disabled row state for all of the rows passed in.
         ids.forEach(id => {
-          const maybeRowState = rowState[id];
-          if (maybeRowState) {
-            rowState[id] = {
-              ...maybeRowState,
-              isDisabled: true,
-            };
-          }
+          rowState[id] = getRowState(state, id, { isDisabled: true });
         });
 
         return { ...state, rowState: { ...rowState } };
       });
     },
 
-    setActiveRows: (ids: string[]) => {
+    setRows: (ids: string[]) => {
       set(state => {
-        const { rowState } = state;
-
-        // Create a new row state, which is setting any newly active rows to unselected.
+        // Create a new row state, which is setting any newly active rows to unselected and unfocused.
         const newRowState: Record<string, RowState> = ids.reduce(
-          (newRowState, id) => {
+          (newRowState, id, index) => {
             return {
               ...newRowState,
-
-              [id]: {
-                ...rowState[id],
-                isSelected: rowState[id]?.isSelected ?? false,
+              [id]: getRowState(state, id, {
                 isExpanded: false,
-                isDisabled: state.rowState[id]?.isDisabled ?? false,
-              },
+                isFocused: false,
+                index,
+              }),
             };
           },
           {}
@@ -131,6 +165,37 @@ export const createTableStore = (): UseStore<TableStore> =>
       });
     },
 
+    setFocus: direction => {
+      set(state => {
+        const { rowState } = state;
+        const rows = Object.entries(rowState);
+
+        // Get currently focused row, if any
+        const [currentFocusId, currentFocusObj] =
+          rows.find(([_, { isFocused }]) => isFocused === true) || [];
+
+        // Deduce what the next row is, wrapping around if reaching top/bottom
+        const nextIndex =
+          direction === 'down'
+            ? ((currentFocusObj?.index ?? -1) + 1) % rows.length
+            : ((currentFocusObj?.index ?? rows.length) - 1 + rows.length) %
+              rows.length;
+        const [nextId] =
+          rows.find(([, { index }]) => index === nextIndex) || [];
+
+        // Set / Unset focus state
+        if (currentFocusId)
+          rowState[currentFocusId] = getRowState(state, currentFocusId, {
+            isFocused: false,
+          });
+        rowState[nextId as string] = getRowState(state, nextId as string, {
+          isFocused: true,
+        });
+
+        return { ...state, rowState: { ...rowState } };
+      });
+    },
+
     toggleSelected: (id: string) => {
       set(state => {
         const { numberSelected, rowState } = state;
@@ -148,12 +213,7 @@ export const createTableStore = (): UseStore<TableStore> =>
           numberSelected: newNumberSelected,
           rowState: {
             ...state.rowState,
-            [id]: {
-              ...state.rowState[id],
-              isSelected,
-              isExpanded: state.rowState[id]?.isExpanded ?? false,
-              isDisabled: state.rowState[id]?.isDisabled ?? false,
-            },
+            [id]: getRowState(state, id, { isSelected }),
           },
         };
       });
@@ -163,20 +223,15 @@ export const createTableStore = (): UseStore<TableStore> =>
       set(state => {
         const { numberExpanded, rowState } = state;
 
-        const newExpanded = !rowState[id]?.isExpanded;
-        const newNumberExpanded = numberExpanded + (newExpanded ? 1 : -1);
+        const isExpanded = !rowState[id]?.isExpanded;
+        const newNumberExpanded = numberExpanded + (isExpanded ? 1 : -1);
 
         return {
           ...state,
           numberExpanded: newNumberExpanded,
           rowState: {
             ...rowState,
-            [id]: {
-              ...rowState[id],
-              isSelected: rowState[id]?.isSelected ?? false,
-              isDisabled: state.rowState[id]?.isDisabled ?? false,
-              isExpanded: newExpanded,
-            },
+            [id]: getRowState(state, id, { isExpanded }),
           },
         };
       });
@@ -195,12 +250,7 @@ export const createTableStore = (): UseStore<TableStore> =>
           rowState: Object.keys(state.rowState).reduce(
             (newState, id) => ({
               ...newState,
-              [id]: {
-                ...state.rowState[id],
-                isExpanded,
-                isSelected: state.rowState[id]?.isSelected ?? false,
-                isDisabled: state.rowState[id]?.isDisabled ?? false,
-              },
+              [id]: getRowState(state, id, { isExpanded }),
             }),
             state.rowState
           ),
@@ -208,83 +258,3 @@ export const createTableStore = (): UseStore<TableStore> =>
       });
     },
   }));
-
-interface UseExpandedControl {
-  isExpanded: boolean;
-  toggleExpanded: () => void;
-}
-
-export const useExpanded = (rowId: string): UseExpandedControl => {
-  const selector = useCallback(
-    (state: TableStore) => {
-      return {
-        rowId,
-        isExpanded: state.rowState[rowId]?.isExpanded ?? false,
-        toggleExpanded: () => state.toggleExpanded(rowId),
-      };
-    },
-    [rowId]
-  );
-
-  const equalityFn = (
-    oldState: ReturnType<typeof selector>,
-    newState: ReturnType<typeof selector>
-  ) =>
-    oldState?.isExpanded === newState?.isExpanded &&
-    oldState.rowId === newState.rowId;
-
-  return useTableStore(selector, equalityFn);
-};
-
-interface UseDisabledControl {
-  isDisabled: boolean;
-  // toggleDisabled: () => void; // TODO: Is this needed?
-}
-
-export const useDisabled = (rowId: string): UseDisabledControl => {
-  const selector = useCallback(
-    (state: TableStore) => {
-      return {
-        rowId,
-        isDisabled: state.rowState[rowId]?.isDisabled ?? false,
-      };
-    },
-    [rowId]
-  );
-
-  const equalityFn = (
-    oldState: ReturnType<typeof selector>,
-    newState: ReturnType<typeof selector>
-  ) =>
-    oldState?.isDisabled === newState?.isDisabled &&
-    oldState.rowId === newState.rowId;
-
-  return useTableStore(selector, equalityFn);
-};
-
-interface IsGroupedControl {
-  isGrouped: boolean;
-  toggleIsGrouped: () => void;
-}
-
-export const useIsGrouped = (key: keyof GroupByItem): IsGroupedControl => {
-  const { setIsGrouped } = useTableStore();
-  const [groupByItem, setGroupByItem] = useLocalStorage('/groupbyitem', {
-    outboundShipment: false,
-    inboundShipment: false,
-  });
-
-  const toggleIsGrouped = useCallback(() => {
-    const newVal = !groupByItem?.[key];
-    setGroupByItem({ ...groupByItem, [key]: newVal });
-  }, [groupByItem, key, setGroupByItem, setIsGrouped]);
-
-  useEffect(() => {
-    // Sync the table state up with the local storage state.
-    // Syncing the states rather than explicitly setting in the callback
-    // as we need to do this on the initial mount regardless.
-    setIsGrouped(!!groupByItem?.[key]);
-  }, [groupByItem?.[key]]);
-
-  return { isGrouped: !!groupByItem?.[key], toggleIsGrouped };
-};

@@ -1,63 +1,23 @@
-import React, { FC, useEffect, useRef } from 'react';
+import React, { FC } from 'react';
 import {
-  useNotification,
+  useTranslation,
   DropdownMenu,
   DropdownMenuItem,
-  useTranslation,
   DeleteIcon,
-  useTableStore,
   AppBarContentPortal,
   FilterController,
   SearchBar,
 } from '@openmsupply-client/common';
-import { InvoiceRow } from '../../types';
-import { canDeleteInvoice } from '../../utils';
+import { useDeleteSelectedInbounds, InboundRowFragment } from '../api';
 
 export const Toolbar: FC<{
-  onDelete: (toDelete: InvoiceRow[]) => void;
   filter: FilterController;
-  data?: InvoiceRow[];
-}> = ({ onDelete, data, filter }) => {
+}> = ({ filter }) => {
   const t = useTranslation('replenishment');
+  const onDelete = useDeleteSelectedInbounds();
 
-  const { success, info } = useNotification();
-
-  const { selectedRows } = useTableStore(state => ({
-    selectedRows: Object.keys(state.rowState)
-      .filter(id => state.rowState[id]?.isSelected)
-      .map(selectedId => data?.find(({ id }) => selectedId === id))
-      .filter(Boolean) as InvoiceRow[],
-  }));
-
-  const deleteAction = () => {
-    const numberSelected = selectedRows.length;
-    if (selectedRows && numberSelected > 0) {
-      const canDeleteRows = selectedRows.every(canDeleteInvoice);
-      if (!canDeleteRows) {
-        const cannotDeleteSnack = info(t('message.cant-delete-invoices'));
-        cannotDeleteSnack();
-      } else {
-        onDelete(selectedRows);
-        const deletedMessage = t('messages.deleted-invoices', {
-          number: numberSelected,
-        });
-        const successSnack = success(deletedMessage);
-        successSnack();
-      }
-    } else {
-      const selectRowsSnack = info(t('message.select-rows-to-delete'));
-      selectRowsSnack();
-    }
-  };
-
-  const ref = useRef(deleteAction);
-
-  useEffect(() => {
-    ref.current = deleteAction;
-  }, [selectedRows]);
-
-  const key = 'comment' as keyof InvoiceRow;
-  const filterString = filter.filterBy?.[key]?.like as string;
+  const key = 'otherPartyName' as keyof InboundRowFragment;
+  const filterString = (filter.filterBy?.[key]?.like as string) || '';
 
   return (
     <AppBarContentPortal
@@ -69,15 +29,15 @@ export const Toolbar: FC<{
       }}
     >
       <SearchBar
-        placeholder="Search by comment..."
+        placeholder={t('placeholder.search-by-name')}
         value={filterString}
         onChange={newValue =>
-          filter.onChangeStringFilterRule('comment', 'like', newValue)
+          filter.onChangeStringFilterRule('otherPartyName', 'like', newValue)
         }
       />
 
       <DropdownMenu label="Select">
-        <DropdownMenuItem IconComponent={DeleteIcon} onClick={deleteAction}>
+        <DropdownMenuItem IconComponent={DeleteIcon} onClick={onDelete}>
           {t('button.delete-lines')}
         </DropdownMenuItem>
       </DropdownMenu>

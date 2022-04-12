@@ -95,3 +95,96 @@ You can also specify multiple namespaces when using the hook:
 ```
   const t = useTranslation(['common', 'distribution']);
 ```
+
+## Android App
+
+### Pre requisites
+
+This is using capacitor, and the `cordova-android` plugin. These are in `package.json`, so you'll install when you `yarn install`.
+However, capacitor would also like you to
+
+```
+npx cap sync
+```
+
+after the cordova plugin is installed.. this will create the `./packages/android/capacitor-cordova-android-plugins` dir, which you'll need.
+
+### Build the remote server lib
+
+The Android app needs the remote server build as a shared lib.
+
+Make sure the Android NDK is installed and the env var `NDK_HOME` is set, for example to `~Android/Sdk/ndk/22.1.7171670`.
+Currently the build script requires the Android API 26, make sure this version is installed.
+
+For Mac OS, the version of NDK installed by Android Studio does not have all of the required linkers prebuilt: instead use:
+
+`~/Library/Android/sdk/tools/bin/sdkmanager "ndk-bundle"`
+
+and set the `NDK_HOME` to `$ANDROID_SDK_ROOT/ndk-bundle`
+
+The remote server source code should be located in the `../remote-server` directory.
+If not clone it by doing:
+
+```
+cd ..
+git clone git@github.com:openmsupply/remote-server.git
+```
+
+You may need to install `armv7` i.e. `rustup target add armv7-linux-androideabi`
+
+#### MacOS issues
+
+If you have the error: `fatal error: 'stdio.h' file not found`. If so, specify a location for the headers using the`CPATH`env var, for example`/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/`or`/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/`
+
+If the `C_INCLUDE_PATH` env var is set, that may cause compilation issues, as it will include the macOS headers and give you `warning: #error architecture not supported` and `warning: fatal error: too many errors emitted, stopping now [-ferror-limit=]`. In which case `unset C_INCLUDE_PATH`
+
+```
+yarn android:build-remote_server
+```
+
+#### Unsolved issue that will hopefully be fixed at some point:
+
+1. The x86 target seem to be broken and crashes when loading the server lib
+2. On Mac OS the `armv7-linux-androideabi` target fails to build, you may need to comment out from the makefile and build script
+
+### Run the Android app
+
+In `packages/host/public/config.js` change `API_HOST` to `API_HOST: 'http://localhost:8082'` to use the remote server running on Android.
+
+Then run the command `yarn android:build` to
+
+- build the react app
+- copy the built files for capacitor
+- build the apk
+
+The steps, if you need to run them manually are:
+
+```
+yarn build
+npx cap copy
+```
+
+Enable clear text traffic in `android/app/src/main/AndroidManifest.xml`:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.openmsupply.client">
+
+    <application
+      android:usesCleartextTraffic="true"
+      android:allowBackup="true"
+      ...
+```
+
+Open the `android` folder in Android studio and start the app.
+
+To build an .apk, run the command `yarn android:build`
+
+Currently the remote-server doesn't create a sqlite DB file on first startup.
+For this reason this step needs to be done manually, i.e. create and migrate the db file locally and then copy the file to the app folder on the device (using adb or AndroidStudio).
+The path in AndroidStudio shows as `/data/data/app/org.openmsupply.client/files/omsupply-database.sqlite`
+
+### Java bits
+
+The remote server is started and stopped in: `android/app/src/main/java/org/openmsupply/client/MainActivity.java`

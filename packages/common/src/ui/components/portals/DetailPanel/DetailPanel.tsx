@@ -1,19 +1,16 @@
 import React, { FC, ReactNode, useEffect, useRef } from 'react';
+import { Box, Grid, Theme, Typography, styled } from '@mui/material';
+import { Portal } from '@mui/base';
 import {
-  Box,
-  Grid,
-  Theme,
-  Typography,
-  styled,
-  useMediaQuery,
-  useTheme,
-  Portal,
-} from '@mui/material';
-import { useDetailPanelStore, useHostContext } from '@common/hooks';
+  useDetailPanelStore,
+  useHostContext,
+  useIsLargeScreen,
+} from '@common/hooks';
 import { useTranslation } from '@common/intl';
 import { FlatButton } from '../../buttons';
 import { CloseIcon } from '@common/icons';
 import { Divider } from '../../divider/Divider';
+import { LocalStorage } from '../../../../localStorage';
 
 export interface DetailPanelPortalProps {
   Actions?: ReactNode;
@@ -66,15 +63,31 @@ export const DetailPanelPortal: FC<DetailPanelPortalProps> = ({
 }) => {
   const t = useTranslation('common');
   const { detailPanelRef } = useHostContext();
-  const { close, isOpen, open } = useDetailPanelStore();
-  const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('lg'));
+  const { hasUserSet, isOpen, close } = useDetailPanelStore();
+  const isLargeScreen = useIsLargeScreen();
 
-  useEffect(() => {
-    if (isSmallScreen && isOpen) close();
-    if (!isSmallScreen && !isOpen) open();
-    return () => close();
-  }, [isSmallScreen]);
+  const setIsOpen = (isOpen: boolean) =>
+    useDetailPanelStore.setState(state => ({
+      ...state,
+      isOpen,
+      shouldPersist: false,
+    }));
+
+  React.useEffect(() => {
+    if (!hasUserSet) {
+      if (isLargeScreen && isOpen) setIsOpen(false);
+      if (!isLargeScreen && !isOpen) setIsOpen(true);
+    }
+  }, [isLargeScreen, hasUserSet, isOpen]);
+
+  React.useEffect(() => {
+    if (hasUserSet && !isOpen) {
+      setIsOpen(!!LocalStorage.getItem('/detailpanel/open'));
+    }
+    // set isOpen to false on unmounting, so that the open state
+    // is controlled by the portal and only shown if there is content
+    return () => setIsOpen(false);
+  }, []);
 
   if (!detailPanelRef) return null;
 
@@ -95,11 +108,11 @@ export const DetailPanelPortal: FC<DetailPanelPortalProps> = ({
               color="inherit"
               label={t('button.close')}
               onClick={close}
-              icon={<CloseIcon color="inherit" />}
+              startIcon={<CloseIcon color="inherit" />}
             />
           </Box>
         </Grid>
-        <Grid item flex={1}>
+        <Grid item flex={1} style={{ overflowY: 'scroll' }}>
           <Divider />
           {children}
         </Grid>
@@ -112,7 +125,9 @@ export const DetailPanelPortal: FC<DetailPanelPortalProps> = ({
                   sx={{
                     fontSize: 12,
                     fontWeight: 600,
-                    margin: '15px 0 10px 21px',
+                    marginTop: '15px',
+                    marginBottom: '10px',
+                    marginInlineStart: '15px',
                   }}
                 >
                   {t('heading.actions')}

@@ -1,121 +1,63 @@
-import { SupplierRequisitionNodeStatus } from '@openmsupply-client/common';
-
+import { RequestRowFragment } from './RequestRequisition/api/operations.generated';
 import {
-  Requisition,
-  SupplierRequisition,
-  CustomerRequisition,
-  RequisitionRow,
-} from './types';
+  RequisitionNodeStatus,
+  LocaleKey,
+  useTranslation,
+} from '@openmsupply-client/common';
 
-export const placeholderSupplierRequisition: SupplierRequisition = {
-  id: '',
-  requisitionNumber: 0,
-  isDeleted: false,
-  lines: [],
-  color: '#cdcdcd',
-  otherParty: {
-    id: '',
-    name: '',
-    code: '',
-    isCustomer: false,
-    isSupplier: true,
-  },
-  otherPartyId: '',
-  otherPartyName: '',
-  status: SupplierRequisitionNodeStatus.Draft,
-  orderDate: null,
-  requisitionDate: null,
-  update: () => {
-    throw new Error(
-      'Placeholder callback update has been triggered. This should never happen!'
-    );
-  },
-  updateOtherParty: () => {
-    throw new Error(
-      'Placeholder callback updateOtherParty has been triggered. This should never happen!'
-    );
-  },
-  updateRequisitionDate: () => {
-    throw new Error(
-      'Placeholder callback updateRequisitionDate has been triggered. This should never happen!'
-    );
-  },
-  updateOrderDate: () => {
-    throw new Error(
-      'Placeholder callback updateOrderDate has been triggered. This should never happen!'
-    );
-  },
+export const requestStatuses = [
+  RequisitionNodeStatus.Draft,
+  RequisitionNodeStatus.Sent,
+  RequisitionNodeStatus.Finalised,
+];
+
+// TODO: When response requisitions can be manually created, the status of DRAFT
+// becomes possible and such will need to be handled.
+export const responseStatuses = [
+  RequisitionNodeStatus.New,
+  RequisitionNodeStatus.Finalised,
+];
+
+const requisitionStatusToLocaleKey: Record<RequisitionNodeStatus, LocaleKey> = {
+  [RequisitionNodeStatus.Draft]: 'label.draft',
+  [RequisitionNodeStatus.New]: 'label.new',
+  [RequisitionNodeStatus.Sent]: 'label.sent',
+  [RequisitionNodeStatus.Finalised]: 'label.finalised',
 };
 
-export const placeholderCustomerRequisition: CustomerRequisition = {
-  id: '',
-  requisitionNumber: 0,
-  isDeleted: false,
-  lines: [],
-  color: '#cdcdcd',
-  otherParty: {
-    id: '',
-    name: '',
-    code: '',
-    isCustomer: false,
-    isSupplier: true,
-  },
-  otherPartyId: '',
-  otherPartyName: '',
-  status: SupplierRequisitionNodeStatus.Draft,
-  orderDate: null,
-  requisitionDate: null,
-  update: () => {
-    throw new Error(
-      'Placeholder callback update has been triggered. This should never happen!'
-    );
-  },
-  updateOtherParty: () => {
-    throw new Error(
-      'Placeholder callback updateOtherParty has been triggered. This should never happen!'
-    );
-  },
-  updateRequisitionDate: () => {
-    throw new Error(
-      'Placeholder callback updateRequisitionDate has been triggered. This should never happen!'
-    );
-  },
-  updateOrderDate: () => {
-    throw new Error(
-      'Placeholder callback updateOrderDate has been triggered. This should never happen!'
-    );
-  },
+export const getStatusTranslation = (status: RequisitionNodeStatus) => {
+  return requisitionStatusToLocaleKey[status];
 };
 
-export const isRequisitionEditable = (requisition: Requisition): boolean => {
-  return (
-    requisition.status === SupplierRequisitionNodeStatus.Draft ||
-    requisition.status === SupplierRequisitionNodeStatus.InProgress
+export const getRequisitionTranslator =
+  (t: ReturnType<typeof useTranslation>) =>
+  (currentStatus: RequisitionNodeStatus): string =>
+    t(getStatusTranslation(currentStatus));
+
+export const getNextRequestStatus = (
+  currentStatus: RequisitionNodeStatus
+): RequisitionNodeStatus | null => {
+  const currentStatusIdx = requestStatuses.findIndex(
+    status => currentStatus === status
   );
+  const nextStatus = requestStatuses[currentStatusIdx + 1];
+  return nextStatus ?? null;
 };
 
-// TODO: When supplier requisition statuses are finalised, this function should be passed
-// `t` and should properly translate the status.
-export const getSupplierRequisitionTranslator =
-  () =>
-  (currentStatus: SupplierRequisitionNodeStatus): string =>
-    currentStatus;
-
-// TODO: When supplier requisition statuses are finalised, this function should
-// return the next status rather than just returning the current status
-export const getNextSupplierRequisitionStatus = (
-  currentStatus: SupplierRequisitionNodeStatus
-): SupplierRequisitionNodeStatus => {
-  return currentStatus;
+export const getNextResponseStatus = (
+  currentStatus: RequisitionNodeStatus
+): RequisitionNodeStatus | null => {
+  const currentStatusIdx = responseStatuses.findIndex(
+    status => currentStatus === status
+  );
+  const nextStatus = responseStatuses[currentStatusIdx + 1];
+  return nextStatus ?? null;
 };
 
-export const getSupplierRequisitionStatuses =
-  (): SupplierRequisitionNodeStatus[] => [
-    SupplierRequisitionNodeStatus.Draft,
-    SupplierRequisitionNodeStatus.InProgress,
-    SupplierRequisitionNodeStatus.Finalised,
-    SupplierRequisitionNodeStatus.Sent,
-  ];
+export const isRequestDisabled = (request: RequestRowFragment): boolean => {
+  return request.status !== RequisitionNodeStatus.Draft;
+};
 
-export const canDeleteRequisition = (requisitionRow: RequisitionRow): boolean =>
-  requisitionRow.status === SupplierRequisitionNodeStatus.Draft;
+export const isResponseDisabled = (request: RequestRowFragment): boolean => {
+  return request.status !== RequisitionNodeStatus.New;
+};

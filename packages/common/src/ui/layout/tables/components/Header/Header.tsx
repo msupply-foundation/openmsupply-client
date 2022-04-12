@@ -1,32 +1,31 @@
 import React, { FC } from 'react';
-import { Box, TableCell, TableRow, TableSortLabel } from '@mui/material';
+import { TableCell, TableRow, TableSortLabel, Tooltip } from '@mui/material';
 import { Column } from '../../columns/types';
-import { MenuDotsIcon, SortDescIcon } from '@common/icons';
-import { DomainObject } from '@common/types';
+import { SortDescIcon } from '@common/icons';
+import { RecordWithId } from '@common/types';
 import { useDebounceCallback } from '@common/hooks';
+import { useTranslation } from '@common/intl';
 
 export const HeaderRow: FC<{ dense?: boolean }> = ({ dense, ...props }) => (
   <TableRow
     {...props}
     sx={{
-      display: 'flex',
-      flex: '1 0 auto',
       height: !!dense ? '40px' : '60px',
-      alignItems: 'center',
     }}
   />
 );
 
-interface HeaderCellProps<T extends DomainObject> {
+interface HeaderCellProps<T extends RecordWithId> {
   column: Column<T>;
   dense?: boolean;
 }
 
-export const HeaderCell = <T extends DomainObject>({
+export const HeaderCell = <T extends RecordWithId>({
   column,
   dense = false,
 }: HeaderCellProps<T>): JSX.Element => {
   const {
+    maxWidth,
     minWidth,
     width,
     onChangeSortBy,
@@ -35,18 +34,43 @@ export const HeaderCell = <T extends DomainObject>({
     align,
     sortBy,
     Header,
+    description,
   } = column;
 
   const [x, setX] = React.useState(0);
 
   const { direction, key: currentSortKey } = sortBy ?? {};
-
+  const t = useTranslation('common');
   const isSorted = key === currentSortKey;
 
   const onSort = useDebounceCallback(
     () => onChangeSortBy && sortable && onChangeSortBy(column),
     [column],
     150
+  );
+
+  const showTooltip = !!description || sortable;
+  const tooltip = showTooltip ? (
+    <>
+      {!!description && <div>{t(description)}</div>}
+      {sortable && <div>{t('label.click-to-sort')}</div>}
+    </>
+  ) : (
+    ''
+  );
+  const HeaderLabel = sortable ? (
+    <TableSortLabel
+      hideSortIcon={false}
+      active={isSorted}
+      direction={direction}
+      IconComponent={SortDescIcon}
+    >
+      <Header column={column} />
+    </TableSortLabel>
+  ) : (
+    <div>
+      <Header column={column} />
+    </div>
   );
 
   return (
@@ -60,57 +84,22 @@ export const HeaderCell = <T extends DomainObject>({
         borderBottom: '0px',
         paddingLeft: '16px',
         paddingRight: '16px',
-        width: width + 10,
-        minWidth: minWidth + 10,
-        flex: `${width} 0 auto`,
+        width,
+        minWidth,
+        maxWidth,
         fontWeight: 'bold',
         fontSize: dense ? '12px' : '14px',
       }}
       aria-label={String(key)}
       sortDirection={isSorted ? direction : false}
     >
-      {sortable ? (
-        <Box
-          flexDirection="row"
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-        >
-          <TableSortLabel
-            hideSortIcon={false}
-            active={isSorted}
-            direction={direction}
-            IconComponent={SortDescIcon}
-          >
-            <Header column={column} />
-          </TableSortLabel>
-
-          {column?.onChangeWidth && (
-            <Box
-              sx={{
-                cursor: 'col-resize',
-                backgroundColor: 'transparent',
-              }}
-              draggable
-              onDragStart={e => {
-                setX(e.clientX);
-              }}
-              onDragEnd={e => {
-                column?.onChangeWidth &&
-                  column.onChangeWidth(
-                    Math.max(column.width + (e.clientX - x), column.minWidth)
-                  );
-
-                setX(e.clientX);
-              }}
-            >
-              <MenuDotsIcon />
-            </Box>
-          )}
-        </Box>
-      ) : (
-        <Header column={column} />
-      )}
+      <Tooltip
+        title={tooltip}
+        placement="bottom"
+        style={{ whiteSpace: 'pre-line' }}
+      >
+        {HeaderLabel}
+      </Tooltip>
     </TableCell>
   );
 };
