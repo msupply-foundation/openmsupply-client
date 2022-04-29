@@ -1,10 +1,15 @@
-import { InboundRowFragment } from './InboundShipment/api/operations.generated';
+import {
+  InboundFragment,
+  InboundRowFragment,
+} from './InboundShipment/api/operations.generated';
 import {
   InvoiceLineNodeType,
   LocaleKey,
   InvoiceNodeStatus,
   useTranslation,
   ArrayUtils,
+  Formatter,
+  TypedTFunction,
 } from '@openmsupply-client/common';
 import { OutboundRowFragment } from './OutboundShipment/api';
 import { InboundLineFragment } from './InboundShipment/api';
@@ -23,6 +28,12 @@ export const inboundStatuses: InvoiceNodeStatus[] = [
   InvoiceNodeStatus.New,
   InvoiceNodeStatus.Picked,
   InvoiceNodeStatus.Shipped,
+  InvoiceNodeStatus.Delivered,
+  InvoiceNodeStatus.Verified,
+];
+
+export const manualInboundStatuses: InvoiceNodeStatus[] = [
+  InvoiceNodeStatus.New,
   InvoiceNodeStatus.Delivered,
   InvoiceNodeStatus.Verified,
 ];
@@ -101,15 +112,27 @@ export const isOutboundDisabled = (outbound: OutboundRowFragment): boolean => {
 };
 
 export const isInboundDisabled = (inbound: InboundRowFragment): boolean => {
-  return (
-    inbound.status === InvoiceNodeStatus.Verified ||
-    inbound.status === InvoiceNodeStatus.Picked
-  );
+  const isManuallyCreated = !inbound.linkedShipment?.id;
+  return isManuallyCreated
+    ? inbound.status === InvoiceNodeStatus.Verified
+    : inbound.status === InvoiceNodeStatus.Picked ||
+        inbound.status === InvoiceNodeStatus.Shipped ||
+        inbound.status === InvoiceNodeStatus.Verified;
+};
+
+export const useIsInboundStatusChangeDisabled = (
+  inbound: InboundFragment
+): boolean => {
+  const isManuallyCreated = !inbound.linkedShipment?.id;
+  return isManuallyCreated
+    ? inbound.status === InvoiceNodeStatus.Verified
+    : inbound.status === InvoiceNodeStatus.Picked ||
+        inbound.status === InvoiceNodeStatus.Verified;
 };
 
 export const createSummaryItem = (
   itemId: string,
-  lines: [InboundLineFragment, ...InboundLineFragment[]]
+  lines: InboundLineFragment[]
 ): InboundItem => {
   const item: InboundItem = {
     // TODO: Could generate a unique UUID here if wanted for the id. But not needed for now.
@@ -170,4 +193,60 @@ export const get = {
 
     return totalBeforeTax * (1 + taxPercentage / 100);
   },
+};
+
+export const outboundsToCsv = (
+  invoices: OutboundRowFragment[],
+  t: TypedTFunction<LocaleKey>
+) => {
+  const fields: string[] = [
+    'id',
+    t('label.name'),
+    t('label.status'),
+    t('label.invoice-number'),
+    t('label.entered'),
+    t('label.reference'),
+    t('label.comment'),
+    t('label.total'),
+  ];
+
+  const data = invoices.map(node => [
+    node.id,
+    node.otherPartyName,
+    node.status,
+    node.invoiceNumber,
+    Formatter.csvDateString(node.createdDatetime),
+    node.theirReference,
+    node.comment,
+    node.pricing.totalAfterTax,
+  ]);
+  return Formatter.csv({ fields, data });
+};
+
+export const inboundsToCsv = (
+  invoices: InboundRowFragment[],
+  t: TypedTFunction<LocaleKey>
+) => {
+  const fields: string[] = [
+    'id',
+    t('label.name'),
+    t('label.status'),
+    t('label.invoice-number'),
+    t('label.entered'),
+    t('label.confirmed'),
+    t('label.comment'),
+    t('label.total'),
+  ];
+
+  const data = invoices.map(node => [
+    node.id,
+    node.otherPartyName,
+    node.status,
+    node.invoiceNumber,
+    Formatter.csvDateString(node.createdDatetime),
+    Formatter.csvDateString(node.allocatedDatetime),
+    node.comment,
+    node.pricing.totalAfterTax,
+  ]);
+  return Formatter.csv({ fields, data });
 };

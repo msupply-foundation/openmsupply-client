@@ -1,8 +1,7 @@
 {
-  "button.delete-lines": "Delete lines",
+  "button.delete-lines": "Delete selected lines",
   "button.save-and-confirm-status": "Confirm {{status}}",
   "error.cant-save": "There was a problem saving.",
-  "error.no-items": "No items",
   "error.stocktake-not-found": "Stocktake not found",
   "label.add-batch": "Add batch",
   "label.add-new-line": "Add a new line",
@@ -28,5 +27,7 @@
   "messages.error-deleting-locations_one": "{{count}} location could not be deleted",
   "messages.error-deleting-locations_other": "{{count}} locations could not be deleted",
   "placeholder.enter-an-item-code-or-name": "Enter item code or name",
-  "messages.deleted-lines": "Deleted {{number}} lines"
+  "messages.deleted-lines": "Deleted {{number}} lines",
+  "status.new": "New",
+  "status.finalised": "Finalised"
 }

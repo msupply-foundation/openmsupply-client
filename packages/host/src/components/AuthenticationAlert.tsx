@@ -1,5 +1,5 @@
 import { useToggle } from '@common/hooks';
-import { AppRoute } from 'packages/config/src';
+import { AppRoute } from '@openmsupply-client/config';
 import React, { useEffect } from 'react';
 import {
   AuthError,
@@ -30,6 +30,10 @@ export const AuthenticationAlert = () => {
   if (
     matchPath(
       RouteBuilder.create(AppRoute.Login).addWildCard().build(),
+      location.pathname
+    ) ||
+    matchPath(
+      RouteBuilder.create(AppRoute.Initialise).addWildCard().build(),
       location.pathname
     )
   ) {

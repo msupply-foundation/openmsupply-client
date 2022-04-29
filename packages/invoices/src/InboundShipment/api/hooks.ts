@@ -17,11 +17,13 @@ import {
   useMutation,
   useFieldsSelector,
   InvoiceNodeStatus,
+  SortBy,
 } from '@openmsupply-client/common';
 import { ItemRowFragment } from '@openmsupply-client/system';
 import {
   inboundLinesToSummaryItems,
   isInboundDisabled,
+  useIsInboundStatusChangeDisabled,
   isA,
 } from './../../utils';
 import { InboundItem } from './../../types';
@@ -40,6 +42,8 @@ export const useInboundApi = () => {
     detail: (id: string) => [...keys.base(), storeId, id] as const,
     list: () => [...keys.base(), storeId, 'list'] as const,
     paramList: (params: ListParams) => [...keys.list(), params] as const,
+    sortedList: (sortBy: SortBy<InboundRowFragment>) =>
+      [...keys.list(), sortBy] as const,
   };
 
   const { client } = useGql();
@@ -71,6 +75,12 @@ export const useIsInboundDisabled = (): boolean => {
   const { data } = useInbound();
   if (!data) return true;
   return isInboundDisabled(data);
+};
+
+export const useIsStatusChangeDisabled = (): boolean => {
+  const { data } = useInbound();
+  if (!data) return true;
+  return useIsInboundStatusChangeDisabled(data);
 };
 
 export const useInboundSelector = <T = InboundFragment>(
@@ -148,7 +158,7 @@ export const useNextItem = (
   if (!nextItem) return { next, disabled };
 
   return {
-    next: nextItem.lines[0].item,
+    next: nextItem.lines[0]?.item || null,
     disabled: currentIndex === numberOfItems - 1,
   };
 };
@@ -258,6 +268,16 @@ export const useInbounds = () => {
       })
     ),
     ...queryParams,
+  };
+};
+
+export const useInboundsAll = (sortBy: SortBy<InboundRowFragment>) => {
+  const api = useInboundApi();
+
+  return {
+    ...useMutation(api.keys.sortedList(sortBy), () =>
+      api.get.listAll({ sortBy })
+    ),
   };
 };
 

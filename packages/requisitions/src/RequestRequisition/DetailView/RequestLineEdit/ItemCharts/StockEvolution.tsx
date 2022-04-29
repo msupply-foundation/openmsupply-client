@@ -31,15 +31,14 @@ export const StockEvolution: React.FC<StockEvolutionProps> = ({ id }) => {
     switch (name) {
       case 'stockOnHand':
         return [value, t('label.stock-level')];
-      case 'min':
+      case 'minimumStockOnHand':
         return [value, t('label.min')];
-      case 'max':
+      case 'maximumStockOnHand':
         return [value, t('label.max')];
       default:
         return [value, name];
     }
   };
-
   if (!data || !data.stockEvolution) return null;
   const tooltipLabelFormatter = (date: string) => dateFormatter(date);
 
@@ -63,7 +62,7 @@ export const StockEvolution: React.FC<StockEvolutionProps> = ({ id }) => {
           <ComposedChart
             width={450}
             height={255}
-            data={data.stockEvolution.nodes}
+            data={data?.stockEvolution.nodes}
           >
             <CartesianGrid vertical={false} />
             <XAxis
@@ -119,7 +118,7 @@ export const StockEvolution: React.FC<StockEvolutionProps> = ({ id }) => {
               ))}
             </Bar>
             <Line
-              dataKey="max"
+              dataKey="maximumStockOnHand"
               stroke={theme.palette.success.main}
               strokeDasharray="4"
               dot={false}
@@ -127,7 +126,7 @@ export const StockEvolution: React.FC<StockEvolutionProps> = ({ id }) => {
             />
 
             <Line
-              dataKey="min"
+              dataKey="minimumStockOnHand"
               stroke={theme.palette.error.main}
               dot={false}
               strokeWidth={2}

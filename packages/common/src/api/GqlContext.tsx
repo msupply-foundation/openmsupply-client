@@ -1,23 +1,35 @@
-import React, { FC, useMemo, useEffect, useState, useCallback } from 'react';
+import React, {
+  FC,
+  useMemo,
+  useEffect,
+  useState,
+  useCallback,
+  PropsWithChildren,
+} from 'react';
 import { createContext } from 'react';
 import {
-  BatchRequestDocument,
   GraphQLClient,
   RequestDocument,
+  RequestOptions,
   Variables,
 } from 'graphql-request';
 import { AuthError } from '../authentication/AuthContext';
 import { LocalStorage } from '../localStorage';
 
+const permissionExceptions = ['reports', 'stockCounts', 'invoiceCounts'];
 interface ResponseError {
   message?: string;
   path?: string[];
   extensions?: { details?: string };
 }
 
-function hasError(errors: ResponseError[], error: AuthError) {
-  return errors.some(({ message }: { message?: string }) => message === error);
-}
+const hasError = (errors: ResponseError[], error: AuthError) =>
+  errors.some(({ message }: { message?: string }) => message === error);
+
+const hasPermissionException = (errors: ResponseError[]) =>
+  errors.every(({ path }: { path?: string[] }) =>
+    (path || []).every(p => permissionExceptions.includes(p))
+  );
 
 const handleResponseError = (errors: ResponseError[]) => {
   if (hasError(errors, AuthError.Unauthenticated)) {
@@ -25,7 +37,10 @@ const handleResponseError = (errors: ResponseError[]) => {
     return;
   }
 
-  if (hasError(errors, AuthError.PermissionDenied)) {
+  if (
+    hasError(errors, AuthError.PermissionDenied) &&
+    !hasPermissionException(errors)
+  ) {
     LocalStorage.setItem('/auth/error', AuthError.PermissionDenied);
     return;
   }
@@ -46,25 +61,19 @@ class GQLClient extends GraphQLClient {
     this.emptyData = {};
   }
 
-  public rawRequest<T, V = Variables>(
-    query: string,
-    variables?: V,
-    requestHeaders?: RequestInit['headers']
-  ): Promise<{
-    data: T;
-    extensions?: any;
-    headers: Headers;
-    status: number;
-  }> {
-    return this.client.rawRequest(query, variables, requestHeaders);
-  }
-
   public request<T, V = Variables>(
-    document: RequestDocument,
+    documentOrOptions: RequestDocument | RequestOptions<V>,
     variables?: V,
     requestHeaders?: RequestInit['headers']
   ): Promise<T> {
-    const response = this.client.request(document, variables, requestHeaders);
+    const options = documentOrOptions as RequestOptions<V>;
+    const response = options.document
+      ? this.client.request(options)
+      : this.client.request(
+          documentOrOptions as RequestDocument,
+          variables,
+          requestHeaders
+        );
     // returning an empty object in order to give the caller a stable reference
     // without it, the page will re-render continuously
     return response.then(
@@ -78,12 +87,7 @@ class GQLClient extends GraphQLClient {
       }
     );
   }
-  public batchRequests<T, V = Variables>(
-    documents: BatchRequestDocument<V>[],
-    requestHeaders?: RequestInit['headers']
-  ): Promise<T> {
-    return this.client.batchRequests(documents, requestHeaders);
-  }
+
   public setHeaders = (headers: RequestInit['headers']): GraphQLClient =>
     this.client.setHeaders(headers);
   public setHeader = (key: string, value: string): GraphQLClient =>
@@ -115,7 +119,10 @@ interface ApiProviderProps {
   url: string;
 }
 
-export const GqlProvider: FC<ApiProviderProps> = ({ url, children }) => {
+export const GqlProvider: FC<PropsWithChildren<ApiProviderProps>> = ({
+  url,
+  children,
+}) => {
   const [{ client }, setApi] = useState<{
     client: GQLClient;
   }>(() => createGql(url));

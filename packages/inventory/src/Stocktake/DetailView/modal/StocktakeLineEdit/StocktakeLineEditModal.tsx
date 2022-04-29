@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, PropsWithChildren } from 'react';
 import {
   useDialog,
   useTranslation,
@@ -8,6 +8,7 @@ import {
 
 interface StocktakeLineEditModalProps {
   isOpen: boolean;
+  isValid: boolean;
   mode: ModalMode | null;
   onCancel: () => void;
   onOk: () => void;
@@ -15,15 +16,9 @@ interface StocktakeLineEditModalProps {
   hasNext: boolean;
 }
 
-export const StocktakeLineEditModal: FC<StocktakeLineEditModalProps> = ({
-  isOpen,
-  children,
-  mode,
-  onCancel,
-  onOk,
-  onNext,
-  hasNext,
-}) => {
+export const StocktakeLineEditModal: FC<
+  PropsWithChildren<StocktakeLineEditModalProps>
+> = ({ isOpen, isValid, children, mode, onCancel, onOk, onNext, hasNext }) => {
   const { Modal } = useDialog({ onClose: onCancel, isOpen });
   const t = useTranslation('inventory');
 
@@ -39,10 +34,12 @@ export const StocktakeLineEditModal: FC<StocktakeLineEditModalProps> = ({
         <DialogButton
           variant="next"
           onClick={onNext}
-          disabled={!hasNext && mode === ModalMode.Update}
+          disabled={(!hasNext && mode === ModalMode.Update) || !isValid}
         />
       }
-      okButton={<DialogButton variant="ok" onClick={onOk} />}
+      okButton={
+        <DialogButton variant="ok" onClick={onOk} disabled={!isValid} />
+      }
       height={600}
       width={1024}
     >

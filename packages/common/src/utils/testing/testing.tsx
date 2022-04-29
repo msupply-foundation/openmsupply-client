@@ -1,6 +1,7 @@
-import React, { FC, useEffect } from 'react';
+import React, { FC, PropsWithChildren, useEffect } from 'react';
 import { AppThemeProvider } from '@common/styles';
 import { SupportedLocales } from '@common/intl';
+import { PropsWithChildrenOnly } from '@common/types';
 import mediaQuery from 'css-mediaquery';
 import { SnackbarProvider } from 'notistack';
 import { QueryClientProvider, QueryClient } from 'react-query';
@@ -9,13 +10,9 @@ import { TableProvider, createTableStore } from '../../ui/layout/tables';
 import { GqlProvider } from '../..';
 import { Environment } from '@openmsupply-client/config';
 import { ConfirmationModalProvider } from '../../ui/components/modals';
-import {
-  renderHook,
-  RenderHookOptions,
-  RenderHookResult,
-} from '@testing-library/react-hooks/dom';
+import { renderHook } from '@testing-library/react';
 import i18next from 'i18next';
-import { I18nextProvider, initReactI18next } from 'react-i18next';
+import { initReactI18next, I18nextProvider } from 'react-i18next';
 import app from '@common/intl/locales/en/app.json';
 import common from '@common/intl/locales/en/common.json';
 import appFr from '@common/intl/locales/fr/app.json';
@@ -48,11 +45,15 @@ const resources = {
   },
 };
 
-export const IntlTestProvider: FC<IntlTestProviderProps> = ({
+export const IntlTestProvider: FC<PropsWithChildren<IntlTestProviderProps>> = ({
   children,
   locale,
 }) => {
   useEffect(() => {
+    i18next.changeLanguage(locale);
+  }, [locale]);
+
+  if (!i18next.isInitialized) {
     i18next.use(initReactI18next).init({
       resources,
       debug: false,
@@ -65,20 +66,15 @@ export const IntlTestProvider: FC<IntlTestProviderProps> = ({
         escapeValue: false,
       },
     });
-  }, [resources]);
-
+  }
   return <I18nextProvider i18n={i18next}>{children}</I18nextProvider>;
 };
-
-interface StoryProviderProps {
-  locale?: SupportedLocales;
-}
 
 interface TestingRouterProps {
   initialEntries: string[];
 }
 
-export const TestingRouter: FC<TestingRouterProps> = ({
+export const TestingRouter: FC<PropsWithChildren<TestingRouterProps>> = ({
   children,
   initialEntries,
 }) => (
@@ -87,17 +83,20 @@ export const TestingRouter: FC<TestingRouterProps> = ({
   </MemoryRouter>
 );
 
-export const TestingRouterContext: FC = ({ children }) => (
+export const TestingRouterContext: FC<PropsWithChildrenOnly> = ({
+  children,
+}) => (
   <TestingRouter initialEntries={['/testing']}>
     <Route path="/testing" element={<>{children}</>} />
   </TestingRouter>
 );
 
-export const TestingProvider: FC<{ locale?: 'en' | 'fr' | 'ar' }> = ({
-  children,
-  locale = 'en',
-}) => (
-  <React.Suspense fallback={<span>?</span>}>
+export const TestingProvider: FC<
+  PropsWithChildren<{
+    locale?: 'en' | 'fr' | 'ar';
+  }>
+> = ({ children, locale = 'en' }) => (
+  <React.Suspense fallback={<span>[suspended]</span>}>
     <QueryClientProvider client={queryClient}>
       <GqlProvider url={Environment.GRAPHQL_URL}>
         <SnackbarProvider maxSnack={3}>
@@ -112,7 +111,7 @@ export const TestingProvider: FC<{ locale?: 'en' | 'fr' | 'ar' }> = ({
   </React.Suspense>
 );
 
-export const StoryProvider: FC<StoryProviderProps> = ({ children }) => (
+export const StoryProvider: FC<PropsWithChildrenOnly> = ({ children }) => (
   <React.Suspense fallback={<span>?</span>}>
     <QueryClientProvider client={queryClient}>
       <GqlProvider url={Environment.GRAPHQL_URL}>
@@ -152,13 +151,11 @@ export const setScreenSize_ONLY_FOR_TESTING = (screenSize: number): void => {
 export const renderHookWithProvider = <Props, Result>(
   hook: (props: Props) => Result,
   options?: {
-    renderHookOptions?: RenderHookOptions<Props>;
     providerProps?: { locale: 'en' | 'fr' | 'ar' };
   }
-): RenderHookResult<Props, Result> =>
+) =>
   renderHook(hook, {
-    ...options?.renderHookOptions,
-    wrapper: ({ children }) => (
+    wrapper: ({ children }: { children?: React.ReactNode }) => (
       <TestingProvider {...options?.providerProps}>{children}</TestingProvider>
     ),
   });

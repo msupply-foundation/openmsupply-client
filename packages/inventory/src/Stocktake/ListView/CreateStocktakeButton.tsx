@@ -4,11 +4,11 @@ import { PlusCircleIcon } from '@common/icons';
 import { useTranslation } from '@common/intl';
 import { useToggle } from '@common/hooks';
 import { useInsertStocktake } from '../api';
-import { StockItemSelectModal } from 'packages/system/src';
+import { StockItemSelectModal } from '@openmsupply-client/system';
 
 export const CreateStocktakeButton: React.FC = () => {
   const t = useTranslation(['distribution', 'common']);
-  const { mutate } = useInsertStocktake();
+  const { mutateAsync } = useInsertStocktake();
   const modalController = useToggle();
 
   return (
@@ -16,7 +16,7 @@ export const CreateStocktakeButton: React.FC = () => {
       {modalController.isOn && (
         <StockItemSelectModal
           isOpen={modalController.isOn}
-          onChange={mutate}
+          onChange={mutateAsync}
           onClose={modalController.toggleOff}
         />
       )}

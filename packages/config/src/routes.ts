@@ -1,4 +1,5 @@
 export enum AppRoute {
+  Initialise = 'initialise',
   Login = 'login',
   Distribution = 'distribution',
   OutboundShipment = 'outbound-shipment',
@@ -37,5 +38,5 @@ export enum AppRoute {
 }
 
 export enum ExternalURL {
-  PublicDocs = 'https://docs.msupply.foundation',
+  PublicDocs = 'https://docs.msupply.foundation/docs',
 }

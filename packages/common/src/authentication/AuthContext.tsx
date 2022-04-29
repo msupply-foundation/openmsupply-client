@@ -1,5 +1,6 @@
-import React, { createContext, FC, useMemo, useState, useEffect } from 'react';
+import React, { createContext, useMemo, useState, useEffect, FC } from 'react';
 import { IntlUtils } from '@common/intl';
+import { AppRoute } from '@openmsupply-client/config';
 import { useLocalStorage } from '../localStorage';
 import Cookies from 'js-cookie';
 import { addMinutes } from 'date-fns';
@@ -9,6 +10,9 @@ import { useGetAuthToken } from './api/hooks/useGetAuthToken';
 import { useUserDetails } from './api/hooks/useUserDetails';
 import { AuthenticationResponse } from './api';
 import { UserStoreNodeFragment } from './api/operations.generated';
+import { PropsWithChildrenOnly } from '@common/types';
+import { RouteBuilder } from '../utils/navigation';
+import { matchPath } from 'react-router-dom';
 
 export const COOKIE_LIFETIME_MINUTES = 60;
 const TOKEN_CHECK_INTERVAL = 60 * 1000;
@@ -99,7 +103,7 @@ const AuthContext = createContext<AuthControl>({
 
 const { Provider } = AuthContext;
 
-export const AuthProvider: FC = ({ children }) => {
+export const AuthProvider: FC<PropsWithChildrenOnly> = ({ children }) => {
   const [mostRecentlyUsedCredentials, setMRUCredentials] =
     useLocalStorage('/mru/credentials');
   const i18n = IntlUtils.useI18N();
@@ -175,8 +179,7 @@ export const AuthProvider: FC = ({ children }) => {
       username: mostRecentlyUsedCredentials?.username ?? '',
       store,
     });
-    const authCookie = getAuthCookie();
-    const newCookie = { ...authCookie, store };
+    const newCookie = { ...cookie, store };
     setAuthCookie(newCookie);
     setCookie(newCookie);
   };
@@ -218,8 +221,12 @@ export const AuthProvider: FC = ({ children }) => {
     const timer = window.setInterval(() => {
       const authCookie = getAuthCookie();
       const { token } = authCookie;
+      const isInitScreen = matchPath(
+        RouteBuilder.create(AppRoute.Initialise).addWildCard().build(),
+        location.pathname
+      );
 
-      if (!token) {
+      if (!token && !isInitScreen) {
         setError(AuthError.Unauthenticated);
         window.clearInterval(timer);
       }

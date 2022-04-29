@@ -4,14 +4,13 @@ import {
   ModalLabel,
   Grid,
   useTranslation,
-  BasicTextInput,
   ModalMode,
 } from '@openmsupply-client/common';
 import {
   StockItemSearchInput,
   ItemRowFragment,
 } from '@openmsupply-client/system';
-import { useStocktakeRows } from 'packages/inventory/src/Stocktake/api';
+import { useStocktakeRows } from '../../../api';
 
 interface StocktakeLineEditProps {
   item: ItemRowFragment | null;
@@ -32,7 +31,7 @@ export const StocktakeLineEditForm: FC<StocktakeLineEditProps> = ({
     <>
       <ModalRow>
         <ModalLabel label={t('label.item')} />
-        <Grid item flex={1}>
+        <Grid item flex={1} padding={1}>
           <StockItemSearchInput
             autoFocus={!item}
             disabled={disabled}
@@ -46,18 +45,6 @@ export const StocktakeLineEditForm: FC<StocktakeLineEditProps> = ({
           />
         </Grid>
       </ModalRow>
-      {item && (
-        <ModalRow>
-          <Grid style={{ display: 'flex', marginTop: 10 }} flex={1}>
-            <ModalLabel label={t('label.code')} />
-            <BasicTextInput
-              disabled
-              sx={{ width: 150 }}
-              value={item.code ?? ''}
-            />
-          </Grid>
-        </ModalRow>
-      )}
     </>
   );
 };

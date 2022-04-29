@@ -1,8 +1,8 @@
-import React, { FC, ReactNode } from 'react';
+import React, { FC, PropsWithChildren, ReactNode } from 'react';
 import { TestingRouterContext } from '@openmsupply-client/common';
 import { TestingProvider } from '../../utils/testing';
 import { useTheme } from '@common/styles';
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react';
 import { useQueryParams } from './useQueryParams';
 
 type TestSortBy = {
@@ -23,7 +23,7 @@ describe('useQueryParams', () => {
     jest.useFakeTimers();
   });
 
-  const ThemeChangerer: FC<ThemeChangererProps> = ({
+  const ThemeChangerer: FC<PropsWithChildren<ThemeChangererProps>> = ({
     children,
     paginationRowHeight,
     dataRowHeight,
@@ -49,7 +49,7 @@ describe('useQueryParams', () => {
       footerHeight = 0,
       saveButtonRowHeight = 0
     ) =>
-    ({ children }: { children: ReactNode[] }) => {
+    ({ children }: { children: ReactNode }) => {
       return (
         <TestingProvider>
           <TestingRouterContext>

@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, PropsWithChildren } from 'react';
 import {
   MenuItem,
   MenuItemProps,
@@ -23,6 +23,7 @@ interface DropdownMenuItemProps extends MenuItemProps {
 export const DropdownMenuItem: FC<DropdownMenuItemProps> = ({
   IconComponent,
   color,
+  children,
   ...props
 }) => {
   return (
@@ -39,7 +40,7 @@ export const DropdownMenuItem: FC<DropdownMenuItemProps> = ({
           '&.MuiListItemText-inset': { paddingLeft: '22px' },
         }}
       >
-        {props.children}
+        {children}
       </ListItemText>
     </MenuItem>
   );
@@ -75,7 +76,7 @@ interface DropdownMenuProps {
 
 // Styled doesn't like `sx` prop being passed to it.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const DropdownMenu: FC<DropdownMenuProps> = ({
+export const DropdownMenu: FC<PropsWithChildren<DropdownMenuProps>> = ({
   label,
   children,
   disabled = false,

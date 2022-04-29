@@ -7,17 +7,20 @@ import {
   Typography,
   AlertIcon,
   useHostContext,
+  useNavigate,
+  ServerStatus,
 } from '@openmsupply-client/common';
+import { AppRoute } from '@openmsupply-client/config';
+import { useHost } from '../../api/hooks';
 import { LoginTextInput } from './LoginTextInput';
 import { useLoginForm } from './hooks';
 import { LoginLayout } from './LoginLayout';
 
-export const Login: React.FC = ({}) => {
+export const Login = () => {
   const t = useTranslation('app');
   const { setPageTitle } = useHostContext();
-  useEffect(() => {
-    setPageTitle(`${t('app.login')} | ${t('app')} `);
-  }, []);
+  const { data } = useHost.utils.settings();
+  const navigate = useNavigate();
 
   const passwordRef = React.useRef(null);
   const {
@@ -30,6 +33,16 @@ export const Login: React.FC = ({}) => {
     onLogin,
     error,
   } = useLoginForm(passwordRef);
+
+  useEffect(() => {
+    setPageTitle(`${t('app.login')} | ${t('app')} `);
+  }, []);
+
+  useEffect(() => {
+    if (data?.status === ServerStatus.Stage_0) {
+      navigate(`/${AppRoute.Initialise}`);
+    }
+  }, [data]);
 
   return (
     <LoginLayout
