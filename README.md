@@ -190,3 +190,5 @@ The path in AndroidStudio shows as `/data/data/app/org.openmsupply.client/files/
 ### Java bits
 
 The remote server is started and stopped in: `android/app/src/main/java/org/openmsupply/client/MainActivity.java`
+
+.
