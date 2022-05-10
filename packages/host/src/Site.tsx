@@ -32,6 +32,7 @@ import {
 } from './routers';
 import { RequireAuthentication } from './components/Navigation/RequireAuthentication';
 import { QueryErrorHandler } from './QueryErrorHandler';
+import { TypographyPage } from '@openmsupply-client/dashboard/src/TypographyDemo';
 
 const Heading: FC<PropsWithChildrenOnly> = ({ children }) => (
   <div style={{ margin: 50 }}>
@@ -70,6 +71,7 @@ export const Site: FC = () => {
             <NotifyOnLogin />
             <Box display="flex" flex={1} overflow="auto">
               <Routes>
+                <Route path="typography" element={<TypographyPage />} />
                 <Route
                   path={RouteBuilder.create(AppRoute.Dashboard)
                     .addWildCard()

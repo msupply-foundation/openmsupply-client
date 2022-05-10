@@ -187,6 +187,8 @@ export const themeOptions = {
     tooltip: 1500,
   },
   typography: {
+    // MUI uses a root fontSize of 16px
+    fontFamily: 'InterVariable',
     body1: {
       fontFamily: 'InterVariable',
       fontSize: 14,
@@ -194,7 +196,6 @@ export const themeOptions = {
       color: '#1c1c28',
     },
     body2: { color: '#555770', fontSize: 12, fontWeight: 500 },
-    fontFamily: 'InterVariable',
     login: { color: '#fafafa' },
     th: { color: '#1c1c28', fontSize: 14, fontWeight: 700 },
     h6: {
