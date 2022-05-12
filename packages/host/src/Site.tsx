@@ -60,6 +60,7 @@ export const Site: FC = () => {
     setPageTitle(getPageTitle(location.pathname));
   }, [location]);
 
+  console.log('TEST');
   return (
     <RequireAuthentication>
       <CommandK>

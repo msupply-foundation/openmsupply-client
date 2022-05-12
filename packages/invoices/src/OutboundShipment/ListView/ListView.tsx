@@ -1,4 +1,5 @@
 import React, { FC, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   useNavigate,
   DataTable,
@@ -12,6 +13,7 @@ import {
   NothingHere,
   useToggle,
   createQueryParamsStore,
+  useUrlQuery,
 } from '@openmsupply-client/common';
 import { getStatusTranslator, isOutboundDisabled } from '../../utils';
 import { Toolbar } from './Toolbar';
@@ -26,17 +28,19 @@ const useDisableOutboundRows = (rows?: OutboundRowFragment[]) => {
     if (disabledRows) setDisabledRows(disabledRows);
   }, [rows]);
 };
-
 export const OutboundShipmentListViewComponent: FC = () => {
   const { mutate: onUpdate } = useOutbound.document.update();
   const t = useTranslation('distribution');
   const navigate = useNavigate();
   const modalController = useToggle();
+  const { urlQuery } = useUrlQuery();
 
   const { data, isError, isLoading, sort, pagination, filter } =
     useOutbound.document.list();
   const { onChangeSortBy, sortBy } = sort;
   useDisableOutboundRows(data?.nodes);
+
+  console.log('urlQuery', urlQuery);
 
   const columns = useColumns<OutboundRowFragment>(
     [
@@ -69,14 +73,13 @@ export const OutboundShipmentListViewComponent: FC = () => {
       'selection',
     ],
     { onChangeSortBy, sortBy },
-    [sortBy]
+    []
   );
 
   return (
     <>
       <Toolbar filter={filter} />
       <AppBarButtons sortBy={sortBy} modalController={modalController} />
-
       <DataTable
         pagination={{ ...pagination, total: data?.totalCount }}
         onChangePage={pagination.onChangePage}

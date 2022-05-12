@@ -18,4 +18,5 @@ export * from './useNotification';
 export * from './useOpenInNewTab';
 export * from './useQueryParams';
 export * from './useToggle';
+export * from './useUrlQuery';
 export * from './useWindowDimensions';

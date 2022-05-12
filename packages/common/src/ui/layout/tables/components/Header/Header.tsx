@@ -3,7 +3,7 @@ import { TableCell, TableRow, TableSortLabel, Tooltip } from '@mui/material';
 import { Column } from '../../columns/types';
 import { SortDescIcon } from '@common/icons';
 import { RecordWithId } from '@common/types';
-import { useDebounceCallback } from '@common/hooks';
+import { useDebounceCallback, useUrlQuery } from '@common/hooks';
 import { useTranslation } from '@common/intl';
 
 export const HeaderRow: FC<PropsWithChildren<{ dense?: boolean }>> = ({
@@ -43,9 +43,11 @@ export const HeaderCell = <T extends RecordWithId>({
   const { direction, key: currentSortKey } = sortBy ?? {};
   const t = useTranslation('common');
   const isSorted = key === currentSortKey;
+  const { updateQuery } = useUrlQuery();
 
   const onSort = useDebounceCallback(
-    () => onChangeSortBy && sortable && onChangeSortBy(column),
+    () => updateQuery({ sort: key }),
+    // () => onChangeSortBy && sortable && onChangeSortBy(column),
     [column],
     150
   );
