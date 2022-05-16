@@ -12,6 +12,8 @@ import {
   NothingHere,
   useToggle,
   createQueryParamsStore,
+  useUrlQuery,
+  Column,
 } from '@openmsupply-client/common';
 import { getStatusTranslator, isOutboundDisabled } from '../../utils';
 import { Toolbar } from './Toolbar';
@@ -35,8 +37,22 @@ export const OutboundShipmentListViewComponent: FC = () => {
 
   const { data, isError, isLoading, sort, pagination, filter } =
     useOutbound.document.list();
+  const { urlQuery, updateQuery } = useUrlQuery();
   const { onChangeSortBy, sortBy } = sort;
   useDisableOutboundRows(data?.nodes);
+
+  useEffect(() => {
+    const sortKey = urlQuery?.sort ?? 'otherPartyName';
+    const column = columns.find(col => col.key === sortKey);
+    console.log('column', column);
+    if (column?.key !== sortBy.key)
+      onChangeSortBy(column as Column<OutboundRowFragment>);
+  }, [urlQuery]);
+
+  const updateURL = (column: any) => {
+    const sort = column.key;
+    updateQuery({ sort });
+  };
 
   const columns = useColumns<OutboundRowFragment>(
     [
@@ -68,9 +84,11 @@ export const OutboundShipmentListViewComponent: FC = () => {
       ],
       'selection',
     ],
-    { onChangeSortBy, sortBy },
+    { onChangeSortBy: updateURL, sortBy },
     [sortBy]
   );
+
+  console.log('columns', columns);
 
   return (
     <>
