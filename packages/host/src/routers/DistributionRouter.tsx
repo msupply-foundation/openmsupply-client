@@ -34,8 +34,6 @@ export const DistributionRouter: FC = () => {
   const gotoCustomerRequisition = useMatch(fullCustomerRequisitionPath);
   const gotoCustomers = useMatch(fullCustomersPath);
 
-  console.log("ROUTER")
-
   if (gotoOutboundShipment) {
     return <InvoiceService />;
   }

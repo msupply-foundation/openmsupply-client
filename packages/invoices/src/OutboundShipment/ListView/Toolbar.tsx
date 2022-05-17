@@ -12,7 +12,8 @@ import { useOutbound, OutboundRowFragment } from '../api';
 
 export const Toolbar: FC<{
   filter: FilterController;
-}> = ({ filter }) => {
+  updateFilter: (key: string, value: string) => void;
+}> = ({ filter, updateFilter }) => {
   const t = useTranslation('distribution');
 
   const onDelete = useOutbound.document.delete();
@@ -32,9 +33,7 @@ export const Toolbar: FC<{
       <SearchBar
         placeholder={t('placeholder.search-by-name')}
         value={filterString}
-        onChange={newValue => {
-          filter.onChangeStringFilterRule('otherPartyName', 'like', newValue);
-        }}
+        onChange={newValue => updateFilter(key, newValue)}
       />
 
       <DropdownMenu label="Select">

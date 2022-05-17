@@ -36,13 +36,18 @@ export const OutboundShipmentListViewComponent: FC = () => {
 
   const { data, isError, isLoading, sort, pagination, filter } =
     useOutbound.document.list();
-  const { urlQuery, updateSortQuery, onChangeUrlQuery } =
-    useHandleQueryParams(sort);
+  const {
+    urlQuery,
+    updateSortQuery,
+    updatePaginationQuery,
+    updateFilterQuery,
+    onChangeUrlQuery,
+  } = useHandleQueryParams({ sort, pagination, filterKey: 'otherPartyName' });
   const { sortBy } = sort;
   useDisableOutboundRows(data?.nodes);
 
   useEffect(() => {
-    onChangeUrlQuery(columns);
+    onChangeUrlQuery(columns, filter);
   }, [urlQuery]);
 
   const columns = useColumns<OutboundRowFragment>(
@@ -81,12 +86,12 @@ export const OutboundShipmentListViewComponent: FC = () => {
 
   return (
     <>
-      <Toolbar filter={filter} />
+      <Toolbar filter={filter} updateFilter={updateFilterQuery} />
       <AppBarButtons sortBy={sortBy} modalController={modalController} />
 
       <DataTable
         pagination={{ ...pagination, total: data?.totalCount }}
-        onChangePage={pagination.onChangePage}
+        onChangePage={updatePaginationQuery}
         columns={columns}
         data={data?.nodes ?? []}
         isError={isError}

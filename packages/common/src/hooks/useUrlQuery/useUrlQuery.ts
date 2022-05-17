@@ -1,33 +1,32 @@
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+
+interface UrlQueryObject {
+  [key: string]: string | number | boolean;
+}
 
 export const useUrlQuery = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [urlQuery, setUrlQuery] = useState<UrlQueryObject>({});
 
-  const urlQuery = parseSearchParams(searchParams);
+  useEffect(() => {
+    setUrlQuery(parseSearchParams(searchParams));
+  }, [searchParams]);
 
-  const updateQuery = (values: { [key: string]: any }, overwrite = false) => {
+  const updateQuery = (values: UrlQueryObject, overwrite = false) => {
     if (overwrite) setSearchParams(createValidQueryObject(values));
-    else setSearchParams({ ...urlQuery, ...createValidQueryObject(values) });
+    else
+      setSearchParams({
+        ...urlQuery,
+        ...createValidQueryObject(values),
+      });
   };
 
-  return {
-    urlQuery,
-    updateQuery,
-    databaseParams: {
-      filterBy: null,
-      first: 20,
-      offset: 0,
-      sortBy: {
-        key: urlQuery?.sort || 'otherPartyName',
-        direction: urlQuery?.dir || 'asc',
-        isDesc: urlQuery?.dir !== 'asc',
-      },
-    },
-  };
+  return { urlQuery, updateQuery };
 };
 
 // Stringifies all values and removes empty keys
-const createValidQueryObject = (obj: { [key: string]: any }) => {
+const createValidQueryObject = (obj: UrlQueryObject) => {
   const validEntries = Object.entries(obj)
     .filter(([_, value]) => value)
     .map(([key, value]) => [key, String(value)]);
