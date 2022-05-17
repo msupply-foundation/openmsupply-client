@@ -98,6 +98,7 @@ export const createQueryParamsStore = <T extends RecordWithId>({
             isDesc,
             direction: getDirection(isDesc),
           };
+          console.log('sortBy', sortBy);
           return { ...state, sort: { ...sort, sortBy } };
         });
         return sortBy;

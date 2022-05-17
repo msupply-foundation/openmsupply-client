@@ -56,6 +56,8 @@ export const Site: FC = () => {
   const getPageTitle = useGetPageTitle();
   const { setPageTitle } = useHostContext();
 
+  console.log('TEST');
+
   useEffect(() => {
     setPageTitle(getPageTitle(location.pathname));
   }, [location]);
