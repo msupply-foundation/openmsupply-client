@@ -92,6 +92,7 @@ export const OutboundShipmentListViewComponent: FC = () => {
       <DataTable
         pagination={{ ...pagination, total: data?.totalCount }}
         onChangePage={updatePaginationQuery}
+        onChangeSortBy={updateSortQuery}
         columns={columns}
         data={data?.nodes ?? []}
         isError={isError}

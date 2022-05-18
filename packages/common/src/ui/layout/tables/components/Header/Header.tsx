@@ -26,12 +26,12 @@ interface HeaderCellProps<T extends RecordWithId> {
 export const HeaderCell = <T extends RecordWithId>({
   column,
   dense = false,
+  onChangeSortBy,
 }: HeaderCellProps<T>): JSX.Element => {
   const {
     maxWidth,
     minWidth,
     width,
-    onChangeSortBy,
     key,
     sortable,
     align,

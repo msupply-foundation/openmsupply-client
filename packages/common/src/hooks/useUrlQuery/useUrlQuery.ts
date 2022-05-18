@@ -14,24 +14,16 @@ export const useUrlQuery = () => {
   }, [searchParams]);
 
   const updateQuery = (values: UrlQueryObject, overwrite = false) => {
-    if (overwrite) setSearchParams(createValidQueryObject(values));
-    else
-      setSearchParams({
-        ...urlQuery,
-        ...createValidQueryObject(values),
-      });
+    const newQueryObject = overwrite ? {} : { ...urlQuery };
+    Object.entries(values).forEach(([key, value]) => {
+      if (!value) delete newQueryObject[key];
+      else newQueryObject[key] = value;
+    });
+    console.log('newQueryObject', newQueryObject);
+    setSearchParams(newQueryObject);
   };
 
   return { urlQuery, updateQuery };
-};
-
-// Stringifies all values and removes empty keys
-const createValidQueryObject = (obj: UrlQueryObject) => {
-  const validEntries = Object.entries(obj)
-    .filter(([_, value]) => value)
-    .map(([key, value]) => [key, String(value)]);
-
-  return Object.fromEntries(validEntries);
 };
 
 // Coerces url params to appropriate type

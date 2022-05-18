@@ -19,7 +19,7 @@ export const useHandleQueryParams = ({
     const currentSort = urlQuery?.['sort'];
     const sort = column.key as string;
     if (sort !== currentSort) {
-      updateQuery({ sort, dir: 'asc' });
+      updateQuery({ sort, dir: 'asc', page: 1 });
     } else {
       const dir = column?.sortBy?.direction === 'asc' ? 'desc' : 'asc';
       updateQuery({ dir });
@@ -32,6 +32,7 @@ export const useHandleQueryParams = ({
   };
 
   const updateFilterQuery = (key: string, value: string) => {
+    console.log('Value', value);
     updateQuery({ [key]: value });
   };
 
@@ -61,6 +62,7 @@ export const useHandleQueryParams = ({
         'like',
         urlQuery[filterKey] as string
       );
+    else filter.onClearFilterRule(filterKey);
   };
 
   return {
