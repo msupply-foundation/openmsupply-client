@@ -19,8 +19,12 @@ export const useUrlQuery = () => {
       if (!value) delete newQueryObject[key];
       else newQueryObject[key] = value;
     });
-    console.log('newQueryObject', newQueryObject);
-    setSearchParams(newQueryObject);
+    setSearchParams(
+      Object.fromEntries(
+        // SearchParams requires values to be strings
+        Object.entries(newQueryObject).map(([key, val]) => [key, String(val)])
+      )
+    );
   };
 
   return { urlQuery, updateQuery };

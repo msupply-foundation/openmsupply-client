@@ -21,6 +21,7 @@ export const HeaderRow: FC<PropsWithChildren<{ dense?: boolean }>> = ({
 interface HeaderCellProps<T extends RecordWithId> {
   column: Column<T>;
   dense?: boolean;
+  onChangeSortBy?: (column: Column<T>) => void;
 }
 
 export const HeaderCell = <T extends RecordWithId>({

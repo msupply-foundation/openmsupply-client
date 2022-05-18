@@ -32,7 +32,6 @@ export const useHandleQueryParams = ({
   };
 
   const updateFilterQuery = (key: string, value: string) => {
-    console.log('Value', value);
     updateQuery({ [key]: value });
   };
 

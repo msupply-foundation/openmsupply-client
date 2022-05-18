@@ -27,5 +27,6 @@ export interface TableProps<T extends RecordWithId> {
   noDataElement?: JSX.Element;
   pagination?: Pagination & { total?: number };
   onChangePage?: (page: number) => void;
+  onChangeSortBy?: (column: Column<T>) => void;
   onRowClick?: null | ((row: T) => void);
 }
