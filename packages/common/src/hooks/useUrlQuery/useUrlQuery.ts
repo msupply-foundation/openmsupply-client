@@ -1,20 +1,17 @@
-import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 interface UrlQueryObject {
   [key: string]: string | number | boolean;
 }
 
+// search params state is global, can just use it
 export const useUrlQuery = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [urlQuery, setUrlQuery] = useState<UrlQueryObject>({});
-
-  useEffect(() => {
-    setUrlQuery(parseSearchParams(searchParams));
-  }, [searchParams]);
 
   const updateQuery = (values: UrlQueryObject, overwrite = false) => {
-    const newQueryObject = overwrite ? {} : { ...urlQuery };
+    const newQueryObject = overwrite
+      ? {}
+      : { ...parseSearchParams(searchParams) };
     Object.entries(values).forEach(([key, value]) => {
       if (!value) delete newQueryObject[key];
       else newQueryObject[key] = value;
@@ -27,7 +24,7 @@ export const useUrlQuery = () => {
     );
   };
 
-  return { urlQuery, updateQuery };
+  return { urlQuery: parseSearchParams(searchParams), updateQuery };
 };
 
 // Coerces url params to appropriate type

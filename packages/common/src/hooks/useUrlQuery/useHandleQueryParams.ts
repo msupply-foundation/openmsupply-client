@@ -1,19 +1,13 @@
 import { useUrlQuery } from './useUrlQuery';
-import { Column, SortController } from '@openmsupply-client/common';
-import { FilterController, PaginationController } from '../useQueryParams';
+import { Column } from '@openmsupply-client/common';
 
-export const useHandleQueryParams = ({
-  sort,
-  pagination,
-  filterKey,
-}: {
-  sort: SortController<any>;
-  pagination: PaginationController;
-  filterKey: string;
-}) => {
+// You could make this just 'useQueryParams' and use
+// some sort of parameter to use either a global queryParams
+// store or the url, but you don't need both.
+// using the global store can be used for say, a table in a modal
+// (a secondary table using sorting/filtering etc)
+export const useHandleQueryParams = () => {
   const { urlQuery, updateQuery } = useUrlQuery();
-  const { onChangeSortBy, sortBy } = sort;
-  const { onChangePage, page } = pagination;
 
   const updateSortQuery = (column: Column<any>) => {
     const currentSort = urlQuery?.['sort'];
@@ -35,40 +29,26 @@ export const useHandleQueryParams = ({
     updateQuery({ [key]: value });
   };
 
-  const onChangeUrlQuery = (
-    columns: Column<any>[],
-    filter: FilterController
-  ) => {
-    // Update Sort
-    if (urlQuery?.['sort'] || urlQuery?.['dir']) {
-      const sortKey = urlQuery?.['sort'] ?? 'otherPartyName';
-      const column = columns.find(col => col.key === sortKey);
-      if (
-        column?.key !== sortBy.key ||
-        column.sortBy?.direction !== urlQuery?.['dir']
-      )
-        onChangeSortBy(column as Column<any>);
-    }
-
-    // Update Pagination
-    const urlPage = urlQuery?.['page'] ? (urlQuery?.['page'] as number) - 1 : 0;
-    if (urlPage !== page) onChangePage(urlPage);
-
-    // Update Filter
-    if (urlQuery?.[filterKey])
-      filter.onChangeStringFilterRule(
-        filterKey,
-        'like',
-        urlQuery[filterKey] as string
-      );
-    else filter.onClearFilterRule(filterKey);
+  // Make a query params object with the same(ish) shape from the url params
+  // don't need to memoise or store in state or anything
+  const queryParams = {
+    page: urlQuery.page,
+    offset: 0,
+    first: 20,
+    sortBy: {
+      key: urlQuery.sort,
+      direction: urlQuery.dir,
+      isDesc: urlQuery.dir === 'desc',
+    },
+    // :shrug I didn't want to do this
+    filterBy: {},
   };
 
   return {
+    queryParams,
     urlQuery,
     updateSortQuery,
     updatePaginationQuery,
     updateFilterQuery,
-    onChangeUrlQuery,
   };
 };

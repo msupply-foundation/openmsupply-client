@@ -31,7 +31,6 @@ export const DataTableComponent = <T extends RecordWithId>({
   noDataMessage,
   pagination,
   onChangePage,
-  onChangeSortBy,
   onRowClick,
 }: TableProps<T>): JSX.Element => {
   const t = useTranslation('common');
@@ -128,7 +127,6 @@ export const DataTableComponent = <T extends RecordWithId>({
                 dense={dense}
                 column={column}
                 key={String(column.key)}
-                onChangeSortBy={onChangeSortBy}
               />
             ))}
           </HeaderRow>

@@ -15,7 +15,6 @@ import {
   useHandleQueryParams,
 } from '@openmsupply-client/common';
 import { getStatusTranslator, isOutboundDisabled } from '../../utils';
-import { Toolbar } from './Toolbar';
 import { AppBarButtons } from './AppBarButtons';
 import { useOutbound } from '../api';
 import { OutboundRowFragment } from '../api/operations.generated';
@@ -34,21 +33,19 @@ export const OutboundShipmentListViewComponent: FC = () => {
   const navigate = useNavigate();
   const modalController = useToggle();
 
-  const { data, isError, isLoading, sort, pagination, filter } =
+  // You can either take the sort, pagination, filter state from
+  // this hook, or alternatively use the query params hook below,
+  // but they should be the same as they're just backed by the URL
+  // state which is global.
+  // I'd probably recommend the query params hook and simplify
+  // the list hook but I'd probably flip on that opinion in a heart beat
+  const { data, isError, isLoading, sortBy, page, first, offset } =
     useOutbound.document.list();
-  const {
-    urlQuery,
-    updateSortQuery,
-    updatePaginationQuery,
-    updateFilterQuery,
-    onChangeUrlQuery,
-  } = useHandleQueryParams({ sort, pagination, filterKey: 'otherPartyName' });
-  const { sortBy } = sort;
-  useDisableOutboundRows(data?.nodes);
+  const { updateSortQuery, updatePaginationQuery } = useHandleQueryParams();
 
-  useEffect(() => {
-    onChangeUrlQuery(columns, filter);
-  }, [urlQuery]);
+  const pagination = { page, first, offset };
+
+  useDisableOutboundRows(data?.nodes);
 
   const columns = useColumns<OutboundRowFragment>(
     [
@@ -81,18 +78,24 @@ export const OutboundShipmentListViewComponent: FC = () => {
       'selection',
     ],
     { onChangeSortBy: updateSortQuery, sortBy },
-    [sortBy]
+
+    [
+      sortBy,
+
+      // Can fix the stale closure using this deps array (same as useEffect etc)
+      // But I don't believe it's needed anymore? Idk maybe add it to avoid bugs
+      // updateSortQuery
+    ]
   );
 
   return (
     <>
-      <Toolbar filter={filter} updateFilter={updateFilterQuery} />
+      {/* <Toolbar filter={filter} updateFilter={updateFilterQuery} /> */}
       <AppBarButtons sortBy={sortBy} modalController={modalController} />
 
       <DataTable
         pagination={{ ...pagination, total: data?.totalCount }}
         onChangePage={updatePaginationQuery}
-        onChangeSortBy={updateSortQuery}
         columns={columns}
         data={data?.nodes ?? []}
         isError={isError}
