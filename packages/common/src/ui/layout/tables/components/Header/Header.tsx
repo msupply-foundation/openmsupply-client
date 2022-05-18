@@ -27,12 +27,13 @@ interface HeaderCellProps<T extends RecordWithId> {
 export const HeaderCell = <T extends RecordWithId>({
   column,
   dense = false,
-  onChangeSortBy,
+  onChangeSortBy: onChangeSortAlt,
 }: HeaderCellProps<T>): JSX.Element => {
   const {
     maxWidth,
     minWidth,
     width,
+    onChangeSortBy,
     key,
     sortable,
     align,
@@ -46,7 +47,10 @@ export const HeaderCell = <T extends RecordWithId>({
   const isSorted = key === currentSortKey;
 
   const onSort = useDebounceCallback(
-    () => onChangeSortBy && sortable && onChangeSortBy(column),
+    () => {
+      if (onChangeSortAlt) return onChangeSortAlt(column);
+      else return onChangeSortBy && sortable && onChangeSortBy(column);
+    },
     [column],
     150
   );
